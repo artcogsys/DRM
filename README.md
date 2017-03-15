@@ -125,3 +125,9 @@ may be absent, confounds may not be measured, and responses may not be measured
 ## Training
 
 Training takes place using truncated backpropagation on the (partially observed) data
+
+# TO DO
+
+* Reimplement framework in PyTorch (Umut, Silvan, Marcel)
+* Test on (V1/V2) BOLD data (Michele)
+* Test on Allen/zebrafish data (Tami)
