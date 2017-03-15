@@ -131,3 +131,9 @@ Training takes place using truncated backpropagation on the (partially observed)
 * Reimplement framework in PyTorch (Umut, Silvan, Marcel)
 * Test on (V1/V2) BOLD data (Michele)
 * Test on Allen/zebrafish data (Tami)
+
+# Notes
+
+* How does PyTorch keep track of whether or not its in training mode (e.g. for dropout)?
+* PyTorch does not seem to allow None as input size. Means that everything should be known
+at define time, which is impractical (yet not impossible)
