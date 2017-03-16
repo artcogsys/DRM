@@ -1,7 +1,8 @@
 from iterators import DRMIterator
 from population import DRMPopulation
 from readout import DRMReadout
-#from base import *
+from connection import DRMConnection
+from base import DRM
 import numpy as np
 
 #######
@@ -15,14 +16,14 @@ n_epochs = 150
 # define toy dataset with random data; this dataset has no coupling between (random) stimuli and responses!
 # once the framework works; we can generate data from a constructed model and test parameter recovery
 
-n_in = 5 # number of input stimuli
+n_stim = 5 # number/shape of input stimuli
 n_pop = 5 # number of assumed neural populations
-n_out = 5 # number of output responses
+n_resp = 5 # number/shape of output responses
 
 # now chosen such as to have no missing data!
 
-n_stim = 500 # number of stimuli presented
-n_resp = 500 # number of responses recorded
+stim_len = 500 # number of stimuli presented
+resp_len = 500 # number of responses recorded
 
 stim_res = 1 # stimulus resolution
 pop_res  = 2 # population (update) resolution
@@ -32,12 +33,12 @@ stim_offset = 0 # stimulus offset relative to start of population sampling
 resp_offset = 0 # response offset relative to start of population sampling
 
 # a stimulus is being presented every other sample
-stimulus = np.random.randn(n_stim,n_in)
-stim_time = np.arange(stim_offset,stim_offset + n_stim * stim_res, stim_res).tolist()
+stimulus = np.random.randn(stim_len, n_stim)
+stim_time = np.arange(stim_offset, stim_offset + stim_len * stim_res, stim_res).tolist()
 
 # a response is being recorded every other sample
-response = np.random.randn(n_resp,n_out)
-resp_time = np.arange(resp_offset,resp_offset + n_resp * resp_res, resp_res).tolist()
+response = np.random.randn(resp_len, n_resp)
+resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res).tolist()
 
 #######
 # Iterator which generates stimuli and responses
@@ -48,13 +49,28 @@ data_iter = DRMIterator(stimulus, response, resolution=1, stim_time=stim_time, r
 # define model
 
 # standard populations
-populations = [DRMPopulation(out_shape=1) for i in range(n_pop)]
+n_pop_out = 1
+n_pop_in = n_stim + (n_pop-1) * n_pop_out # stimulus input plus scalar output from all other populations
+populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
 
-# standard readout mechanism
-readout = DRMReadout(out_shape=n_out)
+# standard readout mechanism - receives output from all populations
+readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
+
+# link stimulus to all populations; each population receives the (delayed) stimulus input
+ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
+
+# create full population matrix
+Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop * n_pop)]).reshape([n_pop, n_pop])
+
+# remove self connections (these can be handled internally by e.g. an RNN)
+for i in range(n_pop):
+    Wp[i,i] = None
+
+# link populations to the response
+wr = [DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop)]
 
 # setup model
-#drm = DRM(data_iter, populations=populations, readout=readout, Ws=None, Wp=None, Wr=None)
+drm = DRM(data_iter, populations=populations, readout=readout, ws=ws, Wp=Wp, wr=wr)
 
 # run DRM
 #drm.run()

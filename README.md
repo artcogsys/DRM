@@ -37,9 +37,11 @@ Using DRM we can:
 ## Artificial brains
 
 An artificial brain (DRMNet) is a neural network consisting of sensory inputs and neuronal populations.
-Neuronal populations are connected to motor outputs and/or readouts (measurements). The artificial brain 
-is trained end-to-end, either on behavioural output or neural output. Training is facilitated by a DRM object 
-which just wraps the standard neural network training procedure. Below we list components of a DRMNet
+Neuronal populations are connected to motor outputs and/or readouts (measurements). Populations, readouts
+and connections are all inherited from DRMNode.
+
+The artificial brain is trained end-to-end, either on behavioural output or neural output. Training is 
+facilitated by a DRM object which just wraps the standard neural network training procedure. Below we list components of a DRMNet.
 
 ### Stimulus
 
@@ -136,4 +138,4 @@ Training takes place using truncated backpropagation on the (partially observed)
 
 * How does PyTorch keep track of whether or not its in training mode (e.g. for dropout)?
 * PyTorch does not seem to allow None as input size. Means that everything should be known
-at define time, which is impractical (yet not impossible)
+at define time, which is impractical (yet not impossible)...

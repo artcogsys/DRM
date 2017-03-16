@@ -1,23 +1,18 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from base import DRMNode
 
 #####
-## Default population object - a chain object whose inputs and outputs don't need to match
+## DRMPopulation base class
 
-class DRMPopulation(nn.Module):
-    """
-    An identity mapping
-    """
+class DRMPopulation(DRMNode):
+    # Default population is a linear layer with ReLU output
 
-    def __init__(self, out_shape=1):
-        """
+    def __init__(self, n_in=1, n_out=1, delay=1):
 
-        :param out_shape: shape of the output; required in base.py
-        """
+        super(DRMPopulation, self).__init__(n_in, n_out)
 
-        self.out_shape = out_shape
+        self.l1 = nn.Linear(n_in, n_out)
 
-        super(DRMPopulation, self).__init__()
-
-    def forward(self, x, train=False):
-        return x
+    def forward(self, x):
+        return F.relu(self.l1(x))
