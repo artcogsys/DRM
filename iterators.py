@@ -70,6 +70,10 @@ class DRMIterator(object):
         return self
 
     def next(self):
+        """
+
+        :return: a dictionary containing the stimulus and the response batches
+        """
 
         if self.idx == self.n_batches-1:
             raise StopIteration
@@ -92,7 +96,11 @@ class DRMIterator(object):
         # create partially observed data (nans for no output)
         resp_data = np.array(map(lambda x: np.full(self.response[0].shape, np.nan) if len(x) == 0 else self.response[x[0]], idx)).astype('float32')
 
-        return [stim_data, resp_data]
+        data = {}
+        data['stimulus'] = stim_data
+        data['response'] = resp_data
+
+        return data
 
     def process(self, agent):
         pass

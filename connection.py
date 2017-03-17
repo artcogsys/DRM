@@ -21,14 +21,14 @@ class DRMConnection(DRMNode):
 
     def forward(self, x):
 
-        if self.history is None:
-            self.history = [Variable(torch.zeros(x.shape)) for i in range(self.delay)]
+        if self._history is None:
+            self._history = [Variable(torch.zeros(x.size())) for i in range(self._delay)]
 
-        self.history.append(x)
-        y = self.history[0]
-        self.history = self.history[1:]
+        self._history.append(x)
+        y = self._history[0]
+        self._history = self._history[1:]
 
         return y
 
-    def reset_state(self):
-        self.history = None
+    def reset(self):
+        self._history = None

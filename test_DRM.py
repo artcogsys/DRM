@@ -70,8 +70,12 @@ for i in range(n_pop):
 wr = [DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop)]
 
 # setup model
-drm = DRM(data_iter, populations=populations, readout=readout, ws=ws, Wp=Wp, wr=wr)
+drm = DRM(populations=populations, readout=readout, ws=ws, Wp=Wp, wr=wr)
+
+# debugging
+for data in data_iter:
+    drm.model.forward(data)
 
 # run DRM
-#drm.run()
+drm.estimate(data_iter)
 
