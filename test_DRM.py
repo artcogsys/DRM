@@ -69,11 +69,8 @@ Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_p
 for i in range(n_pop):
     Wp[i,i] = None
 
-# link populations to the response
-wr = [DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop)]
-
 # setup model
-drm = DRM(populations=populations, readout=readout, ws=ws, Wp=Wp, wr=wr)
+drm = DRM(populations=populations, ws=ws, Wp=Wp, readout=readout)
 
 #######
 # estimate model

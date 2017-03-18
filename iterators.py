@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+from torch.autograd import Variable
 
 #####
 ## DRM iterator
@@ -55,6 +57,10 @@ class DRMIterator(object):
         self.n_batches = n_batches
 
     def __iter__(self):
+        """ Initializes data generator. Should be invoked at the start of each epoch
+
+        :return:
+        """
 
         self.idx = -1
 
@@ -72,7 +78,7 @@ class DRMIterator(object):
     def next(self):
         """
 
-        :return: a dictionary containing the stimulus and the response batches
+        :return: dictionary containing the stimulus and the response as torch variables
         """
 
         if self.idx == self.n_batches-1:
@@ -97,8 +103,8 @@ class DRMIterator(object):
         resp_data = np.array(map(lambda x: np.full(self.response[0].shape, np.nan) if len(x) == 0 else self.response[x[0]], idx)).astype('float32')
 
         data = {}
-        data['stimulus'] = stim_data
-        data['response'] = resp_data
+        data['stimulus'] = Variable(torch.from_numpy(stim_data))
+        data['response'] = Variable(torch.from_numpy(resp_data))
 
         return data
 

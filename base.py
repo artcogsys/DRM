@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.optim as optim
 from torch.autograd import Variable
 from collections import OrderedDict
 import numpy as np
@@ -44,7 +44,7 @@ class DRMNode(nn.Module):
 
 class DRMNet(nn.Sequential):
 
-    def __init__(self, populations, readout, ws, Wp, wr):
+    def __init__(self, populations, ws, Wp, readout):
         """ Each population receives either sensory input or input from other populations.
         This reception is mediated by connections which are neural networks themselves.
         There are three kinds of connections: sensory-population, population-population, population-response
@@ -52,10 +52,9 @@ class DRMNet(nn.Sequential):
         represented as None.
 
         :param populations: npop list specifying each population
-        :param readout: list of readout mechanisms
         :param ws: list specifying a connection between the stimulus and each population.
         :param Wp: npop x npop object array specifying a connection between all populations
-        :param wr: list specifying a readout mechanism for each internal population.
+        :param readout: list of readout mechanisms
         """
 
         self.n_pop = len(populations)
@@ -76,15 +75,12 @@ class DRMNet(nn.Sequential):
             if not wp[i] is None:
                 _dict['P-P-' + str(i)] = wp[i]
 
-        for i in range(self.n_pop):
-            _dict['P-R-' + str(i)] = wr[i]
-
         super(DRMNet, self).__init__(_dict)
 
         # add populations
         self.populations = populations
 
-        # add readouts
+        # add readout mechanism
         self.readout = readout
 
         ### add connections
@@ -93,17 +89,18 @@ class DRMNet(nn.Sequential):
 
         self.Wp = Wp
 
-        self.wr = wr
+        ## define loss criterion
+        self.loss = nn.MSELoss()
 
     def forward(self, x):
         """
 
-        :param x: sensory input at this point in time (zeros for no input)
+        :param x: sensory input at this point in time (zeros for no input); numpy array
         :param train: whether we are in train or test mode (NOT USED FOR NOW)
         :return:
         """
 
-        batch_size = x['stimulus'].shape[0]
+        batch_size = x.size()[0]
 
         # initialize population outputs
         pop_output = [Variable(torch.zeros([batch_size, p._n_out])) for p in self.populations]
@@ -118,7 +115,7 @@ class DRMNet(nn.Sequential):
                 pop_input = []
             else:
                 # push stimulus into connection that links stimulus to i-th population
-                pop_input = [self.ws[i](Variable(torch.from_numpy(x['stimulus'])))]
+                pop_input = [self.ws[i](x)]
 
             # get population connections entering this population and pass other populations output through the connections
             # note that population outputs can be zero or not depending on whether they have been updated already
@@ -153,26 +150,30 @@ class DRMNet(nn.Sequential):
                 if not wp[j] is None:
                     wp[j].reset()
 
+            self.populations[i].reset()
 
-
-        raise NotImplementedError
+        self.readout.reset()
 
 #####
 ## DRM; wrapper object that trains and analyses the model at hand
 
 class DRM(object):
 
-    def __init__(self, populations, readout, ws, Wp, wr):
+    def __init__(self, populations, ws, Wp, readout):
         """
 
         :param populations: list of populations (neural networks)
-        :param readout: list of readout mechanisms
         :param ws: n_pop object array specifying a connection between the stimulus and each population.
         :param Wp: npop x npop object array specifying a connection between all populations
-        :param wr: n_resp x npop object array specifying a readout mechanism for each internal population.
+        :param readout: list of readout mechanisms
         """
 
-        self.model = DRMNet(populations, readout, ws, Wp, wr)
+        self.model = DRMNet(populations, ws, Wp, readout)
+
+        self.model.train(True)
+
+        # hard coded for now
+        self.optimizer = optim.Adam(self.model.parameters())
 
     def estimate(self, data_iter, val_iter=None, n_epochs=1, cutoff=None):
         """ Here the estimation via truncated backprop takes place
@@ -192,7 +193,8 @@ class DRM(object):
 
         # copy agents for purpose of validation
         if val_iter:
-            val_model = copy.deepcopy(self.model)
+            val_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
+            val_model.train(False)
             _val_loss = 0
             v_it = iter(val_iter)
 
@@ -222,17 +224,17 @@ class DRM(object):
                 d_it = iter(data_iter)
 
             # compute training loss
-            _l = self.model(map(lambda x: Variable(self.xp.asarray(x)), data), train=True)
+            _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
             _loss += _l
 
             # normalize by number of datapoints in minibatch
-            self.train_loss[_iter] = float(_l.data / data[0].shape[0])
+            self.train_loss[_iter] = float(_l.data[0] / data['stimulus'].size()[0])
 
             # run validation
             if not val_iter is None:
 
                 # copy parameters of trained model
-                val_model = copy.deepcopy(self.model)
+                val_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
 
                 # run on data point
                 try:
@@ -241,9 +243,9 @@ class DRM(object):
                     v_it = iter(val_iter)
 
                 # compute validation loss
-                _l = self.model(map(lambda x: Variable(self.xp.asarray(x)), val_data), train=True)
+                _l = self.model.loss(self.model.forward(val_data['stimulus']), val_data['response'])
                 _val_loss += _l.data
-                self.validation_loss[_iter] = float(_l.data / val_data[0].shape[0])
+                self.validation_loss[_iter] = float(_l.data[0] / val_data['stimulus'].size()[0])
 
             # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
             if (cutoff and (_iter % cutoff) == 0) or data_iter.is_final():
@@ -251,7 +253,7 @@ class DRM(object):
                 # store best model in case loss was minimized
                 if not val_iter is None:
                     if min_loss is None:
-                        optimal_model = copy.deepcopy(self.model)
+                        optimal_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
                         min_loss = _val_loss
                     else:
                         if _val_loss < min_loss:
@@ -260,10 +262,10 @@ class DRM(object):
                     _val_loss = 0
 
                 # update model
-                self.optimizer.zero_grads()
+                self.optimizer.zero_grad()
                 _loss.backward()
                 _loss.unchain_backward()
-                self.optimizer.update()
+                self.optimizer.step()
                 _loss = Variable(torch.zeros(1))
 
         if not val_iter is None:
