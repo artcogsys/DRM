@@ -134,9 +134,9 @@ Training takes place using truncated backpropagation on the (partially observed)
 * Refine framework (Silvan, Umut, Marcel)
 * Test on (V1/V2) BOLD data (Michele)
 * Test on Allen/zebrafish data (Tami)
-
-# Notes
-
-* How does PyTorch keep track of whether or not its in training mode (e.g. for dropout)?
-* PyTorch does not seem to allow None as input size. Means that everything should be known
-at define time, which is impractical (yet not impossible)...
+* Link model to physical constants; i.e. make link to biophysics explicit
+* Improve model plausibility
+* Make model work on resting state data (using stochastic nodes and other loss functions)
+* Make model suitable for direct training on tasks
+* Add visualizations; inspection of internal states; graphical ways of building the model
+* Improve and expand documentation using Spinx: http://www.sphinx-doc.org/en/stable/
