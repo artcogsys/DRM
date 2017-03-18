@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from base import DRMNode
+import torch
 
 #####
 ## DRMPopulation base class
@@ -15,4 +16,8 @@ class DRMPopulation(DRMNode):
         self.l1 = nn.Linear(n_in, n_out)
 
     def forward(self, x):
+
+        # the list of inputs (e.g. stimulus and other populations) are concatenated for further processing
+        x = torch.cat(x, 1)
+
         return F.relu(self.l1(x))

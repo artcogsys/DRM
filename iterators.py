@@ -102,5 +102,10 @@ class DRMIterator(object):
 
         return data
 
-    def process(self, agent):
-        pass
+    def is_final(self):
+        """
+
+        :return: boolean if final batch is reached
+        """
+
+        return (self.idx==self.n_batches-1)

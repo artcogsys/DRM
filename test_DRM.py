@@ -33,17 +33,20 @@ stim_offset = 0 # stimulus offset relative to start of population sampling
 resp_offset = 0 # response offset relative to start of population sampling
 
 # a stimulus is being presented every other sample
-stimulus = np.random.randn(stim_len, n_stim)
+stimulus1 = np.random.randn(stim_len, n_stim)
+stimulus2 = np.random.randn(stim_len, n_stim)
 stim_time = np.arange(stim_offset, stim_offset + stim_len * stim_res, stim_res).tolist()
 
 # a response is being recorded every other sample
-response = np.random.randn(resp_len, n_resp)
+response1 = np.random.randn(resp_len, n_resp)
+response2 = np.random.randn(resp_len, n_resp)
 resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res).tolist()
 
 #######
 # Iterator which generates stimuli and responses
 
-data_iter = DRMIterator(stimulus, response, resolution=1, stim_time=stim_time, resp_time=resp_time, batch_size=32)
+data_iter = DRMIterator(stimulus1, response1, resolution=1, stim_time=stim_time, resp_time=resp_time, batch_size=32)
+val_iter = DRMIterator(stimulus2, response2, resolution=1, stim_time=stim_time, resp_time=resp_time, batch_size=32)
 
 #######
 # define model
@@ -72,10 +75,9 @@ wr = [DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop)]
 # setup model
 drm = DRM(populations=populations, readout=readout, ws=ws, Wp=Wp, wr=wr)
 
-# debugging
-for data in data_iter:
-    drm.model.forward(data)
+#######
+# estimate model
 
 # run DRM
-drm.estimate(data_iter)
+drm.estimate(data_iter, val_iter)
 

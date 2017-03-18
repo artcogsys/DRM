@@ -130,7 +130,8 @@ Training takes place using truncated backpropagation on the (partially observed)
 
 # TO DO
 
-* Reimplement framework in PyTorch (Umut, Silvan, Marcel)
+* Reimplement basic framework in PyTorch (Marcel)
+* Refine framework (Silvan, Umut, Marcel)
 * Test on (V1/V2) BOLD data (Michele)
 * Test on Allen/zebrafish data (Tami)
 

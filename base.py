@@ -5,6 +5,7 @@ from torch.autograd import Variable
 from collections import OrderedDict
 import numpy as np
 import tqdm
+import copy
 
 #####
 ## DRMNode; populations, readouts and connections are DRMNodes
@@ -116,6 +117,7 @@ class DRMNet(nn.Sequential):
             if ws is None:
                 pop_input = []
             else:
+                # push stimulus into connection that links stimulus to i-th population
                 pop_input = [self.ws[i](Variable(torch.from_numpy(x['stimulus'])))]
 
             # get population connections entering this population and pass other populations output through the connections
@@ -123,20 +125,35 @@ class DRMNet(nn.Sequential):
             wp = self.Wp[i]
             for j in range(self.n_pop):
                 if not wp[j] is None:
+                    # push output of j-th population into connection that links it to i-th population
                     pop_input.append(wp[j](pop_output[j]))
 
-            # compute population output for this population
-            # population receives the concatenated inputs of sensation and incoming populations
-            pop_output[i] = self.populations[i](torch.cat(pop_input, 1))
+            # pop_input now contains the output of all connections that provide the input to the i-th population
+
+            # compute population output for the i-th population
+            pop_output[i] = self.populations[i](pop_input)
 
         # now we have all the outputs, we can pass it to the readout mechanism
-        return self.readout(torch.cat(pop_output, 1))
+        return self.readout(pop_output)
 
     def reset(self):
         """ Reset states of model components
 
         :return:
         """
+
+        for i in range(self.n_pop):
+
+            # reset stimulus connections
+            self.ws[i].reset()
+
+            # reset population connections
+            wp = self.Wp[i]
+            for j in range(self.n_pop):
+                if not wp[j] is None:
+                    wp[j].reset()
+
+
 
         raise NotImplementedError
 
@@ -157,57 +174,98 @@ class DRM(object):
 
         self.model = DRMNet(populations, readout, ws, Wp, wr)
 
-    def estimate(self, data_iter, n_epochs=1):
+    def estimate(self, data_iter, val_iter=None, n_epochs=1, cutoff=None):
         """ Here the estimation via truncated backprop takes place
 
         :param data_iter: iterator which generates sensations/responses at some specified resolution
+        :param val_iter: optional iterator which generates sensations/responses at some specified resolution used for validation
         :param n_epochs: number of training epochs
+        :param cutoff: cutoff for truncated backpropagation
         :return:
         """
 
+        # keeps track of loss
+        _loss = Variable(torch.zeros(1))
+
+        # initialize iterator
+        d_it = iter(data_iter)
+
+        # copy agents for purpose of validation
+        if val_iter:
+            val_model = copy.deepcopy(self.model)
+            _val_loss = 0
+            v_it = iter(val_iter)
+
+        # initialization for validation
+        min_loss = optimal_model = None
+
+        # determine number of iterations
         max_iter = int(n_epochs * data_iter.n_batches)
+
+        # track training and validation loss
+        self.train_loss = np.zeros(max_iter)
+        self.validation_loss = np.zeros(max_iter)
 
         # iterate over indices
         for _iter in tqdm.tqdm(xrange(0, max_iter)):
 
             # reset agents at start of each epoch
-            map(lambda x: x.reset(), self.agents)
+            if _iter % n_epochs == 0:
+                self.model.reset()
+                if val_iter:
+                    val_model.reset()
 
-            if val_iter:
-                map(lambda x: x.reset(), val_agents)
-
+            # get next minibatch
             try:
                 data = d_it.next()
             except StopIteration:
                 d_it = iter(data_iter)
 
-            losses += map(lambda x: x.run(data, train=train, idx=_iter, final=data_iter.is_final()),
-                          self.agents)
+            # compute training loss
+            _l = self.model(map(lambda x: Variable(self.xp.asarray(x)), data), train=True)
+            _loss += _l
 
+            # normalize by number of datapoints in minibatch
+            self.train_loss[_iter] = float(_l.data / data[0].shape[0])
 
+            # run validation
+            if not val_iter is None:
 
+                # copy parameters of trained model
+                val_model = copy.deepcopy(self.model)
 
+                # run on data point
+                try:
+                    val_data = v_it.next()
+                except StopIteration:
+                    v_it = iter(val_iter)
 
-        loss = self.model(map(lambda x: Variable(self.xp.asarray(x)), data), train=True)
+                # compute validation loss
+                _l = self.model(map(lambda x: Variable(self.xp.asarray(x)), val_data), train=True)
+                _val_loss += _l.data
+                self.validation_loss[_iter] = float(_l.data / val_data[0].shape[0])
 
-        if self.last:  # used in case we propagate back at end of trials only
-            self.loss = loss
-        else:
-            self.loss += loss
+            # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
+            if (cutoff and (_iter % cutoff) == 0) or data_iter.is_final():
 
-        # normalize by number of datapoints in minibatch
-        _loss = float(loss.data / data[0].shape[0])
+                # store best model in case loss was minimized
+                if not val_iter is None:
+                    if min_loss is None:
+                        optimal_model = copy.deepcopy(self.model)
+                        min_loss = _val_loss
+                    else:
+                        if _val_loss < min_loss:
+                            optimal_model = copy.deepcopy(val_model)
+                            min_loss = _val_loss
+                    _val_loss = 0
 
-        # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
-        if train and ((self.cutoff and (idx % self.cutoff) == 0) or final):
-            self.optimizer.zero_grads()
-            self.loss.backward()
-            self.loss.unchain_backward()
-            self.optimizer.update()
+                # update model
+                self.optimizer.zero_grads()
+                _loss.backward()
+                _loss.unchain_backward()
+                self.optimizer.update()
+                _loss = Variable(torch.zeros(1))
 
-            self.loss = Variable(self.xp.zeros((), 'float32'))
-
-        return _loss
-
-        pass
+        if not val_iter is None:
+            self.model = optimal_model
 
