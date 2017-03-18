@@ -71,6 +71,10 @@ Note that this delay is necessary in order to make the artificial brain acyclic.
 we run backpropagation then a delay of at least one sample ensures that we can unroll the 
 neural network over time. A tapped delay line without any delay is an identity mapping. 
 
+Note further that this way of implementing an RNN gives a model in which updating is 
+asynchronous in the sense that the same information may be processed by different populations
+at different points in time, like in biological neural networks.
+
 ## Readout
 
 A readout receives the output of all neuronal populations. It is itself responsible for 
@@ -140,3 +144,4 @@ Training takes place using truncated backpropagation on the (partially observed)
 * Make model suitable for direct training on tasks
 * Add visualizations; inspection of internal states; graphical ways of building the model
 * Improve and expand documentation using Spinx: http://www.sphinx-doc.org/en/stable/
+* Develop readout mechanisms for fMRI/MEG/Calcium/LFP/Spiking data

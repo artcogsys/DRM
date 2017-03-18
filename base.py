@@ -185,89 +185,73 @@ class DRM(object):
         :return:
         """
 
-        # keeps track of loss
-        _loss = Variable(torch.zeros(1))
-
-        # initialize iterator
-        d_it = iter(data_iter)
-
-        # copy agents for purpose of validation
-        if val_iter:
-            val_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
-            val_model.train(False)
-            _val_loss = 0
-            v_it = iter(val_iter)
-
         # initialization for validation
         min_loss = optimal_model = None
 
-        # determine number of iterations
-        max_iter = int(n_epochs * data_iter.n_batches)
-
         # track training and validation loss
-        self.train_loss = np.zeros(max_iter)
-        self.validation_loss = np.zeros(max_iter)
+        train_loss = np.zeros(n_epochs)
+        validation_loss = np.zeros(n_epochs)
 
-        # iterate over indices
-        for _iter in tqdm.tqdm(xrange(0, max_iter)):
+        idx = 0
+        for epoch in tqdm.tqdm(xrange(0, n_epochs)):
+
+            # keep track of loss
+            _loss = Variable(torch.zeros(1))
 
             # reset agents at start of each epoch
-            if _iter % n_epochs == 0:
-                self.model.reset()
-                if val_iter:
-                    val_model.reset()
+            self.model.reset()
 
-            # get next minibatch
-            try:
-                data = d_it.next()
-            except StopIteration:
-                d_it = iter(data_iter)
+            for data in data_iter:
 
-            # compute training loss
-            _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
-            _loss += _l
+                # compute training loss
+                _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
+                _loss += _l
 
-            # normalize by number of datapoints in minibatch
-            self.train_loss[_iter] = float(_l.data[0] / data['stimulus'].size()[0])
+                train_loss[epoch] += _l.data[0] / data['stimulus'].size()[0]
+
+                # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
+                if (cutoff and idx == cutoff-1) or data_iter.is_final():
+
+                    # update model - NOT SURE HOW TO HANDLE PERSISTENT STATES.........
+                    self.optimizer.zero_grad()
+                    _loss.backward()
+                    self.optimizer.step()
+
+                    _loss = Variable(torch.zeros(1))
+
+                    idx = 0
+
+                idx += 1
 
             # run validation
             if not val_iter is None:
 
                 # copy parameters of trained model
-                val_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
+                val_model = copy.copy(self.model) # DEEP COPY NOT ALLOWED.......... HOPING THIS IS SUFFICIENT
+                val_model.train(False)
 
-                # run on data point
-                try:
-                    val_data = v_it.next()
-                except StopIteration:
-                    v_it = iter(val_iter)
+                # reset agents at start of each epoch
+                val_model.reset()
 
-                # compute validation loss
-                _l = self.model.loss(self.model.forward(val_data['stimulus']), val_data['response'])
-                _val_loss += _l.data
-                self.validation_loss[_iter] = float(_l.data[0] / val_data['stimulus'].size()[0])
+                for data in val_iter:
 
-            # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
-            if (cutoff and (_iter % cutoff) == 0) or data_iter.is_final():
+                    # compute validation loss
+                    _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
+
+                    validation_loss[epoch] += _l.data[0] / data['stimulus'].size()[0]
 
                 # store best model in case loss was minimized
                 if not val_iter is None:
-                    if min_loss is None:
-                        optimal_model = self.model #copy.deepcopy(self.model) # This should be a copy with shared parameters
-                        min_loss = _val_loss
-                    else:
-                        if _val_loss < min_loss:
-                            optimal_model = copy.deepcopy(val_model)
-                            min_loss = _val_loss
-                    _val_loss = 0
 
-                # update model
-                self.optimizer.zero_grad()
-                _loss.backward()
-                _loss.unchain_backward()
-                self.optimizer.step()
-                _loss = Variable(torch.zeros(1))
+                    if min_loss is None:
+                        optimal_model = val_model
+                        min_loss = validation_loss[epoch]
+                    else:
+                        if validation_loss[epoch] < min_loss:
+                            optimal_model = copy.deepcopy(val_model)
+                            min_loss = validation_loss[epoch]
 
         if not val_iter is None:
             self.model = optimal_model
 
+        return train_loss, validation_loss

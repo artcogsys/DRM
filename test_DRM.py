@@ -8,7 +8,7 @@ import numpy as np
 #######
 # Parameters
 
-n_epochs = 150
+n_epochs = 100
 
 #######
 # Dataset
@@ -76,5 +76,7 @@ drm = DRM(populations=populations, ws=ws, Wp=Wp, readout=readout)
 # estimate model
 
 # run DRM
-drm.estimate(data_iter, val_iter)
+train_loss, validation_loss = drm.estimate(data_iter, val_iter, n_epochs)
+
+print validation_loss
 
