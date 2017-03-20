@@ -143,5 +143,8 @@ Training takes place using truncated backpropagation on the (partially observed)
 * Make model work on resting state data (using stochastic nodes and other loss functions)
 * Make model suitable for direct training on tasks
 * Add visualizations; inspection of internal states; graphical ways of building the model
-* Improve and expand documentation using Spinx: http://www.sphinx-doc.org/en/stable/
+* Improve and expand documentation using Sphinx: http://www.sphinx-doc.org/en/stable/
 * Develop readout mechanisms for fMRI/MEG/Calcium/LFP/Spiking data
+* Hogwild style update. Link to biophysical, Euler and other updates
+* DRM will be the general framework for biocircuit informed general modeling
+* GRU motivation; see Miconi paper

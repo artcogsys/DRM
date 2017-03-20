@@ -8,6 +8,21 @@ import tqdm
 import copy
 
 #####
+## DRMLoss; MLSE loss which ignores missing data
+
+class DRMLoss(nn.MSELoss):
+
+    def forward(self, input, target):
+
+        idx = np.where(np.any(np.isnan(target.data.numpy()), axis=1) == False)[0]
+        indices = torch.LongTensor(idx)
+        input = torch.index_select(input, 0, indices) # INPUT SHOULD BE A TENSOR. BUT WE ARE DEALING WITH A VARIABLE
+        target = torch.index_select(target, 0, indices)
+
+        return super(DRMLoss, self).forward(input, target)
+
+
+#####
 ## DRMNode; populations, readouts and connections are DRMNodes
 
 class DRMNode(nn.Module):
@@ -90,7 +105,7 @@ class DRMNet(nn.Sequential):
         self.Wp = Wp
 
         ## define loss criterion
-        self.loss = nn.MSELoss()
+        self.loss = DRMLoss()
 
     def forward(self, x):
         """
