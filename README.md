@@ -136,9 +136,11 @@ Training takes place using truncated backpropagation on the (partially observed)
 
 * Reimplement basic framework in PyTorch (Marcel)
 * Refine framework (Silvan, Umut, Marcel)
-* Test on (V1/V2) BOLD data (Michele)
+* Add Cuda support
+* Test on (V1/V2) BOLD data (Michele); two populations; conditioned on V1 or V2 voxels only
 * Test on Allen/zebrafish data (Tami)
 * Link model to physical constants; i.e. make link to biophysics explicit
+* Create learnable delays
 * Improve model plausibility
 * Make model work on resting state data (using stochastic nodes and other loss functions)
 * Make model suitable for direct training on tasks
