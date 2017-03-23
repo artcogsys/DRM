@@ -32,3 +32,8 @@ class DRMConnection(DRMNode):
 
     def reset(self):
         self._history = None
+
+    def detach_(self):
+        for x in self._history:
+            x.detach_()
+

@@ -10,16 +10,22 @@ import copy
 #####
 ## DRMLoss; MLSE loss which ignores missing data
 
-class DRMLoss(nn.MSELoss):
+class DRMLoss(nn.Module):
+
+    def __init__(self):
+
+        super(DRMLoss, self).__init__()
+
+        self.loss = nn.MSELoss()
 
     def forward(self, input, target):
 
         idx = np.where(np.any(np.isnan(target.data.numpy()), axis=1) == False)[0]
-        indices = torch.LongTensor(idx)
+        indices = Variable(torch.LongTensor(idx))
         input = torch.index_select(input, 0, indices) # INPUT SHOULD BE A TENSOR. BUT WE ARE DEALING WITH A VARIABLE
         target = torch.index_select(target, 0, indices)
 
-        return super(DRMLoss, self).forward(input, target)
+        return self.loss(input, target)
 
 
 #####
@@ -51,6 +57,10 @@ class DRMNode(nn.Module):
     def reset(self):
         """ The function that is called when resetting internal state
         """
+
+        pass
+
+    def detach_(self):
 
         pass
 
@@ -106,6 +116,18 @@ class DRMNet(nn.Sequential):
 
         ## define loss criterion
         self.loss = DRMLoss()
+
+    def detach_(self):
+
+        for p in self.populations:
+            p.detach_()
+
+        for w in self.ws:
+            w.detach_()
+
+        for w in self.Wp.ravel():
+            if w:
+                w.detach_()
 
     def forward(self, x):
         """
@@ -185,6 +207,8 @@ class DRM(object):
 
         self.model = DRMNet(populations, ws, Wp, readout)
 
+        self.val_model = copy.deepcopy(self.model)
+
         self.model.train(True)
 
         # hard coded for now
@@ -227,10 +251,10 @@ class DRM(object):
                 # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
                 if (cutoff and idx == cutoff-1) or data_iter.is_final():
 
-                    # update model - NOT SURE HOW TO HANDLE PERSISTENT STATES.........
                     self.optimizer.zero_grad()
                     _loss.backward()
                     self.optimizer.step()
+                    self.model.detach_()
 
                     _loss = Variable(torch.zeros(1))
 
@@ -241,12 +265,10 @@ class DRM(object):
             # run validation
             if not val_iter is None:
 
-                # copy parameters of trained model
-                val_model = copy.copy(self.model) # DEEP COPY NOT ALLOWED.......... HOPING THIS IS SUFFICIENT
-                val_model.train(False)
+                self.val_model.load_state_dict(self.model.state_dict())
 
                 # reset agents at start of each epoch
-                val_model.reset()
+                self.val_model.reset()
 
                 for data in val_iter:
 
@@ -259,11 +281,11 @@ class DRM(object):
                 if not val_iter is None:
 
                     if min_loss is None:
-                        optimal_model = val_model
+                        optimal_model = self.val_model
                         min_loss = validation_loss[epoch]
                     else:
                         if validation_loss[epoch] < min_loss:
-                            optimal_model = copy.deepcopy(val_model)
+                            optimal_model = copy.deepcopy(self.val_model)
                             min_loss = validation_loss[epoch]
 
         if not val_iter is None:
