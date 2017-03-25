@@ -102,7 +102,7 @@ class DRMNet(nn.Sequential):
 
         super(DRMNet, self).__init__(_dict)
 
-        # add populations
+        ### add populations
         self.populations = populations
 
         # add readout mechanism
@@ -114,8 +114,12 @@ class DRMNet(nn.Sequential):
 
         self.Wp = Wp
 
-        ## define loss criterion
+        ### define loss criterion
+
         self.loss = DRMLoss()
+
+        ### store population activity
+        self.pop_output = []
 
     def detach_(self):
 
@@ -133,14 +137,13 @@ class DRMNet(nn.Sequential):
         """
 
         :param x: sensory input at this point in time (zeros for no input); numpy array
-        :param train: whether we are in train or test mode (NOT USED FOR NOW)
         :return:
         """
 
         batch_size = x.size()[0]
 
         # initialize population outputs
-        pop_output = [Variable(torch.zeros([batch_size, p._n_out])) for p in self.populations]
+        self.pop_output = [Variable(torch.zeros([batch_size, p._n_out])) for p in self.populations]
 
         # randomly update each population
         for i in np.random.permutation(self.n_pop):
@@ -160,15 +163,15 @@ class DRMNet(nn.Sequential):
             for j in range(self.n_pop):
                 if not wp[j] is None:
                     # push output of j-th population into connection that links it to i-th population
-                    pop_input.append(wp[j](pop_output[j]))
+                    pop_input.append(wp[j](self.pop_output[j]))
 
             # pop_input now contains the output of all connections that provide the input to the i-th population
 
             # compute population output for the i-th population
-            pop_output[i] = self.populations[i](pop_input)
+            self.pop_output[i] = self.populations[i](pop_input)
 
         # now we have all the outputs, we can pass it to the readout mechanism
-        return self.readout(pop_output)
+        return self.readout(self.pop_output)
 
     def reset(self):
         """ Reset states of model components
@@ -214,6 +217,29 @@ class DRM(object):
         # hard coded for now
         self.optimizer = optim.Adam(self.model.parameters())
 
+    def forward(self, data_iter):
+        """
+
+        :param data_iter:
+        :return: generated response and population activity
+        """
+
+        response = []
+        activity = []
+
+        self.model.reset()
+
+        for data in data_iter:
+
+            r = self.model.forward(data['stimulus']).data.numpy()
+
+            # keep track of population activity
+            activity.append(np.array([x.data.numpy()[0,0] for x in self.model.pop_output]))
+
+            response.append(r)
+
+        return np.vstack(response), np.vstack(activity)
+
     def estimate(self, data_iter, val_iter=None, n_epochs=1, cutoff=None):
         """ Here the estimation via truncated backprop takes place
 
@@ -237,7 +263,7 @@ class DRM(object):
             # keep track of loss
             _loss = Variable(torch.zeros(1))
 
-            # reset agents at start of each epoch
+            # reset at start of each epoch
             self.model.reset()
 
             for data in data_iter:
