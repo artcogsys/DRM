@@ -182,7 +182,8 @@ class DRMNet(nn.Sequential):
         for i in range(self.n_pop):
 
             # reset stimulus connections
-            self.ws[i].reset()
+            if not self.ws[i] is None:
+                self.ws[i].reset()
 
             # reset population connections
             wp = self.Wp[i]
@@ -199,16 +200,13 @@ class DRMNet(nn.Sequential):
 
 class DRM(object):
 
-    def __init__(self, populations, ws, Wp, readout):
+    def __init__(self, drm_net):
         """
 
-        :param populations: list of populations (neural networks)
-        :param ws: n_pop object array specifying a connection between the stimulus and each population.
-        :param Wp: npop x npop object array specifying a connection between all populations
-        :param readout: list of readout mechanisms
+        :param drm_net: a DRM network
         """
 
-        self.model = DRMNet(populations, ws, Wp, readout)
+        self.model = drm_net
 
         self.val_model = copy.deepcopy(self.model)
 

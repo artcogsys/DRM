@@ -2,8 +2,9 @@ from iterators import DRMIterator
 from population import DRMPopulation
 from readout import DRMReadout
 from connection import DRMConnection
-from base import DRM
+from base import DRM, DRMNet
 import numpy as np
+import matplotlib.pyplot as plt
 
 #######
 # Parameters
@@ -52,6 +53,9 @@ readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
 # link stimulus to all populations; each population receives the (delayed) stimulus input
 ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
 
+# link stimulus to the first population only to ensure identifiability
+# ws = [DRMConnection(n_in=n_stim, n_out=n_stim)] + [None for i in range(n_pop-1)]
+
 # create full population matrix
 Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop * n_pop)]).reshape([n_pop, n_pop])
 
@@ -59,16 +63,21 @@ Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_p
 for i in range(n_pop):
     Wp[i,i] = None
 
-# setup model
-drm = DRM(populations=populations, ws=ws, Wp=Wp, readout=readout)
+# set up ground truth model
+drm_net = DRMNet(populations, ws, Wp, readout)
 
 #######
 # Generate responses based on sensory input when running the model in forward mode
 
+# drm is responsible for running the network
+drm = DRM(drm_net)
+
+# data used for model estimation
 stimulus1 = np.random.randn(stim_len, n_stim)
 data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, batch_size=1)
-response1, _ = drm.forward(data_iter)
+response_gt, _ = drm.forward(data_iter)
 
+# data used for model validation
 stimulus2 = np.random.randn(stim_len, n_stim)
 data_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, batch_size=1)
 response2, activity2 = drm.forward(data_iter)
@@ -76,11 +85,11 @@ response2, activity2 = drm.forward(data_iter)
 #######
 # Iterator which generates stimuli and responses
 
-data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, response=response1, resp_time=resp_time, batch_size=32)
+data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, response=response_gt, resp_time=resp_time, batch_size=32)
 val_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, response=response2, resp_time=resp_time, batch_size=32)
 
 #######
-# define model used for parameter inference
+# define model used for parameter inference - same structure as ground truth model but different initial parameters
 
 # standard populations
 populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
@@ -91,6 +100,9 @@ readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
 # link stimulus to all populations; each population receives the (delayed) stimulus input
 ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
 
+# link stimulus to the first population only to ensure identifiability
+# ws = [DRMConnection(n_in=n_stim, n_out=n_stim)] + [None for i in range(n_pop-1)]
+
 # create full population matrix
 Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop * n_pop)]).reshape([n_pop, n_pop])
 
@@ -98,19 +110,21 @@ Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_p
 for i in range(n_pop):
     Wp[i,i] = None
 
-# setup model
-drm2 = DRM(populations=populations, ws=ws, Wp=Wp, readout=readout)
+# set up estimation model
+drm_net2 = DRMNet(populations, ws, Wp, readout)
+
+drm2 = DRM(drm_net2)
 
 #######
 # create new data and compute population activity for real model and initial model
 
 test_stim = np.random.randn(stim_len, n_stim)
 test_iter = DRMIterator(resolution=1, stimulus=test_stim, stim_time=stim_time, batch_size=1)
-response1, activity1 = drm.forward(test_iter)
-response2, activity2 = drm2.forward(test_iter)
+response_gt, activity_gt = drm.forward(test_iter)
+response_init, activity_init = drm2.forward(test_iter)
 
 # compute correlations between population activity of real and initial model
-c1 = np.corrcoef(np.hstack([activity1, activity2]).transpose())
+c1 = np.corrcoef(np.hstack([activity_gt, activity_init]).transpose())
 c1 = [c1[i,i+n_pop] for i in range(n_pop)]
 
 #######
@@ -128,14 +142,32 @@ print validation_loss
 #######
 # compute population activity for estimated model
 
-response2, activity2 = drm2.forward(test_iter)
+response_estim, activity_estim = drm2.forward(test_iter)
 
 # compute correlations between population activity of real and initial model
-c2 = np.corrcoef(np.hstack([activity1, activity2]).transpose())
+c2 = np.corrcoef(np.hstack([activity_gt, activity_estim]).transpose())
 c2 = [c2[i,i+n_pop] for i in range(n_pop)]
 
-# print correlations between model and actual population response for initial and estimated model
+#######
+# compute correlation between population responses for initial and estimated model wrt ground truth model
+
 print 'correlations for initial model:'
 print c1
 print 'correlations for estimated model:'
 print c2
+
+#######
+# plot population activity - first 100 datapoints
+
+for i in range(n_pop):
+
+    x = np.vstack([activity_gt[:, i], activity_init[:, i], activity_estim[:, i]]).T
+
+    plt.subplot(n_pop,1,i)
+    plt.plot(x[:100])
+    plt.title('population {0}; R={1}'.format(i, np.corrcoef(x.T)[0,1]))
+    plt.legend(['ground truth', 'initial', 'estimate'])
+
+plt.show()
+
+

@@ -150,3 +150,8 @@ Training takes place using truncated backpropagation on the (partially observed)
 * Hogwild style update. Link to biophysical, Euler and other updates
 * DRM will be the general framework for biocircuit informed general modeling
 * GRU motivation; see Miconi paper
+* Identifiability issues: how to determine if a model does well when comparing against ground
+truth data? Parameter identifiability but also population identifiability in case of 
+models that contain exactly the same populations
+* Add deepcopy functionality
+* Create multiple readout mechanisms?
