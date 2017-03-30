@@ -154,4 +154,4 @@ Training takes place using truncated backpropagation on the (partially observed)
 truth data? Parameter identifiability but also population identifiability in case of 
 models that contain exactly the same populations
 * Add deepcopy functionality
-* Create multiple readout mechanisms?
+* Create multiple readout mechanisms? No because we cannot handle e.g. MEG data

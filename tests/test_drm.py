@@ -2,14 +2,16 @@ from iterators import DRMIterator
 from population import DRMPopulation
 from readout import DRMReadout
 from connection import DRMConnection
-from base import DRM, DRMNet
+from base import DRM, DRMNet, DRMNode
+import torch
+import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 
 #######
 # Parameters
 
-n_epochs = 200
+n_epochs = 2000
 
 #######
 # Dataset
@@ -19,7 +21,7 @@ n_epochs = 200
 
 n_stim = 5 # number/shape of input stimuli
 n_pop = 3 # number of assumed neural populations
-n_resp = 5 # number/shape of output responses
+n_resp = 2 * n_pop # number/shape of output responses
 
 # now chosen such as to have no missing data!
 
@@ -48,7 +50,23 @@ n_pop_in = n_stim + (n_pop-1) * n_pop_out # stimulus input plus scalar output fr
 populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
 
 # standard readout mechanism - receives output from all populations
-readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
+#readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
+
+# create custom readout mechanism which links each population to a subset of the observations
+class MyReadout(DRMNode):
+
+    def __init__(self, n_in=1, n_out=1):
+
+        super(MyReadout, self).__init__(n_in, n_out)
+
+        self.l0 = nn.Linear(n_in, n_out/3)
+        self.l1 = nn.Linear(n_in, n_out/3)
+        self.l2 = nn.Linear(n_in, n_out/3)
+
+    def forward(self, x):
+        return torch.cat([self.l0(x[0]), self.l1(x[1]), self.l2(x[2])], 1)
+
+readout = MyReadout(n_in=n_pop_out, n_out=n_resp)
 
 # link stimulus to all populations; each population receives the (delayed) stimulus input
 ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
@@ -95,7 +113,23 @@ val_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, re
 populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
 
 # standard readout mechanism - receives output from all populations
-readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
+#readout = DRMReadout(n_in = n_pop * n_pop_out, n_out=n_resp)
+
+# create custom readout mechanism which links each population to a subset of the observations
+class MyReadout(DRMNode):
+
+    def __init__(self, n_in=1, n_out=1):
+
+        super(MyReadout, self).__init__(n_in, n_out)
+
+        self.l0 = nn.Linear(n_in, n_out/3)
+        self.l1 = nn.Linear(n_in, n_out/3)
+        self.l2 = nn.Linear(n_in, n_out/3)
+
+    def forward(self, x):
+        return torch.cat([self.l0(x[0]), self.l1(x[1]), self.l2(x[2])], 1)
+
+readout = MyReadout(n_in=n_pop_out, n_out=n_resp)
 
 # link stimulus to all populations; each population receives the (delayed) stimulus input
 ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
@@ -123,9 +157,10 @@ test_iter = DRMIterator(resolution=1, stimulus=test_stim, stim_time=stim_time, b
 response_gt, activity_gt = drm.forward(test_iter)
 response_init, activity_init = drm2.forward(test_iter)
 
-# compute correlations between population activity of real and initial model
-c1 = np.corrcoef(np.hstack([activity_gt, activity_init]).transpose())
-c1 = [c1[i,i+n_pop] for i in range(n_pop)]
+# compute MSE between population activity of real and initial model
+c1 = []
+for i in range(n_pop):
+    c1.append(((np.squeeze(activity_gt[:,i]) - np.squeeze(activity_init[:,i])) ** 2).mean(axis=0))
 
 #######
 # estimate model
@@ -144,16 +179,17 @@ print validation_loss
 
 response_estim, activity_estim = drm2.forward(test_iter)
 
-# compute correlations between population activity of real and initial model
-c2 = np.corrcoef(np.hstack([activity_gt, activity_estim]).transpose())
-c2 = [c2[i,i+n_pop] for i in range(n_pop)]
+# compute MSE between population activity of real and estimated model
+c2 = []
+for i in range(n_pop):
+    c2.append(((np.squeeze(activity_gt[:,i]) - np.squeeze(activity_estim[:,i])) ** 2).mean(axis=0))
 
 #######
-# compute correlation between population responses for initial and estimated model wrt ground truth model
+# compute MSE between population responses for initial and estimated model wrt ground truth model
 
-print 'correlations for initial model:'
+print 'MSE for initial model:'
 print c1
-print 'correlations for estimated model:'
+print 'MSE for estimated model:'
 print c2
 
 #######
@@ -165,7 +201,7 @@ for i in range(n_pop):
 
     plt.subplot(n_pop,1,i)
     plt.plot(x[:100])
-    plt.title('population {0}; R={1}'.format(i, np.corrcoef(x.T)[0,1]))
+    plt.title('population {0}; initial MSE={1:4.3f}; estim MSE={2:4.3f}'.format(i, c1[i], c2[i]))
     plt.legend(['ground truth', 'initial', 'estimate'])
 
 plt.show()

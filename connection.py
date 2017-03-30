@@ -25,8 +25,7 @@ class DRMConnection(DRMNode):
             self._history = [Variable(torch.zeros(x.size())) for i in range(self._delay)]
 
         self._history.append(x)
-        y = self._history[0]
-        self._history = self._history[1:]
+        y = self._history.pop(0)
 
         return y
 

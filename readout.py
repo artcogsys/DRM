@@ -7,7 +7,7 @@ import torch
 
 class DRMReadout(DRMNode):
 
-    def __init__(self, n_in=1, n_out=1, delay=1):
+    def __init__(self, n_in=1, n_out=1):
 
         super(DRMReadout, self).__init__(n_in, n_out)
 
