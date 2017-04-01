@@ -7,10 +7,9 @@ import numpy as np
 import tqdm
 import copy
 
-#####
-## DRMLoss; MLSE loss which ignores missing data
-
 class DRMLoss(nn.Module):
+    """MSE loss which ignores missing data
+    """
 
     def __init__(self):
 
@@ -18,26 +17,38 @@ class DRMLoss(nn.Module):
 
         self.loss = nn.MSELoss()
 
-    def forward(self, input, target):
+    def forward(self, prediction, target):
+        """Computes loss on a prediction and a target
+
+        Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.
+
+        :param prediction: Prediction of output
+        :param target: Target output
+        :type prediction: Variable
+        :type target: Variable
+        :return: MSE loss
+        :rtype: Variable
+        """
 
         idx = np.where(np.any(np.isnan(target.data.numpy()), axis=1) == False)[0]
         indices = Variable(torch.LongTensor(idx))
-        input = torch.index_select(input, 0, indices)
+        prediction = torch.index_select(prediction, 0, indices)
         target = torch.index_select(target, 0, indices)
 
-        return self.loss(input, target)
+        return self.loss(prediction, target)
 
-
-#####
-## DRMNode; populations, readouts and connections are DRMNodes
 
 class DRMNode(nn.Module):
+    """Base class for populations, readouts and connections
+    """
 
     def __init__(self, n_in=1, n_out=1):
         """
 
-        :param n_in: number/shape of inputs; scalar or numpy tensor
-        :param n_out: number/shape of outputs; scalar or numpy tensor
+        :param n_in: number/shape of inputs
+        :param n_out: number/shape of outputs
+        :type n_in: scalar or numpy tensor
+        :type n_out: scalar or numpy tensor
         """
 
         super(DRMNode, self).__init__()
@@ -70,7 +81,9 @@ class DRMNode(nn.Module):
 class DRMNet(nn.Sequential):
 
     def __init__(self, populations, ws, Wp, readout):
-        """ Each population receives either sensory input or input from other populations.
+        """ DRMNet initializer
+
+        Each population receives either sensory input or input from other populations.
         This reception is mediated by connections which are neural networks themselves.
         There are three kinds of connections: sensory-population, population-population, population-response
         These all derive from the same object but we can have specific default implementations. Absent connections are
@@ -122,6 +135,8 @@ class DRMNet(nn.Sequential):
         self.pop_output = []
 
     def detach_(self):
+        """Detach gradients for truncation
+        """
 
         for p in self.populations:
             p.detach_()
@@ -135,10 +150,10 @@ class DRMNet(nn.Sequential):
                 w.detach_()
 
     def forward(self, x):
-        """
+        """Forward propagation
 
         :param x: sensory input at this point in time (zeros for no input); numpy array
-        :return:
+        :return: predicted output measurements
         """
 
         batch_size = x.size()[0]
@@ -176,8 +191,6 @@ class DRMNet(nn.Sequential):
 
     def reset(self):
         """ Reset states of model components
-
-        :return:
         """
 
         for i in range(self.n_pop):
@@ -196,10 +209,9 @@ class DRMNet(nn.Sequential):
 
         self.readout.reset()
 
-#####
-## DRM; wrapper object that trains and analyses the model at hand
-
 class DRM(object):
+    """wrapper object that trains and analyses the model at hand
+    """
 
     def __init__(self, drm_net):
         """
@@ -216,7 +228,7 @@ class DRM(object):
         self.optimizer = optim.Adam(self.model.parameters())
 
     def forward(self, data_iter):
-        """
+        """Forward propagation
 
         :param data_iter:
         :return: generated response and population activity
@@ -242,13 +254,13 @@ class DRM(object):
         return np.vstack(response), np.vstack(activity)
 
     def estimate(self, data_iter, val_iter=None, n_epochs=1, cutoff=None):
-        """ Here the estimation via truncated backprop takes place
+        """Estimation via truncated backprop
 
         :param data_iter: iterator which generates sensations/responses at some specified resolution
         :param val_iter: optional iterator which generates sensations/responses at some specified resolution used for validation
         :param n_epochs: number of training epochs
         :param cutoff: cutoff for truncated backpropagation
-        :return:
+        :return: train loss and validation loss
         """
 
         # initialization for validation

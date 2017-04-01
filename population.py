@@ -20,6 +20,12 @@ class DRMPopulation(DRMNode):
         self.l1.bias.data.uniform_(0, 0)
 
     def forward(self, x):
+        """Forward propagation
+
+        :param x: population input
+        :type x: list of afferent population outputs
+        :return: population output
+        """
 
         # the list of inputs (e.g. stimulus and other populations) are concatenated for further processing
         x = torch.cat(x, 1)

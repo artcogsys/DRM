@@ -1,0 +1,4 @@
+.. automodule:: DRM.readout
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,3 @@
+sphinx-apidoc -fEM ~/Code/github/DRM -o .
+make html
+make latexpdf

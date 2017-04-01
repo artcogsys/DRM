@@ -8,7 +8,9 @@ from torch.autograd import Variable
 class DRMIterator(object):
 
     def __init__(self, resolution, stimulus, stim_time, response=None, resp_time=None, batch_size=None, n_batches=None):
-        """ Generates stimulus and response outputs. The data stream is sampled at a particular sampling rate. At each
+        """ Initializer
+
+        Generates stimulus and response outputs. The data stream is sampled at a particular sampling rate. At each
         point in time, stimuli and/or responses can be either present or absent depending on the stim_time and resp_times.
         This leads to a partially observed stream both on the input and output side. The stream can generate data in batch
         mode. Only generates stimulus input in case response=None which can be used for forward simulation.
@@ -74,7 +76,7 @@ class DRMIterator(object):
     def __iter__(self):
         """ Initializes data generator. Should be invoked at the start of each epoch
 
-        :return:
+        :return: self
         """
 
         self.idx = 0
@@ -91,7 +93,7 @@ class DRMIterator(object):
         return self
 
     def next(self):
-        """
+        """Produces next data item
 
         :return: dictionary containing the stimulus and the response as torch variables
         """
@@ -127,7 +129,7 @@ class DRMIterator(object):
         return data
 
     def is_final(self):
-        """
+        """Flags if final iteration is reached
 
         :return: boolean if final batch is reached
         """

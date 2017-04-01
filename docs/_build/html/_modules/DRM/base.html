@@ -1,0 +1,420 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DRM.base &mdash; DRM 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="DRM 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for DRM.base</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="kn">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="kn">as</span> <span class="nn">optim</span>
+<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<div class="viewcode-block" id="DRMLoss"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMLoss">[docs]</a><span class="k">class</span> <span class="nc">DRMLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;MSE loss which ignores missing data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DRMLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DRMLoss.forward"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes loss on a prediction and a target</span>
+
+<span class="sd">        Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.</span>
+
+<span class="sd">        :param prediction: Prediction of output</span>
+<span class="sd">        :param target: Target output</span>
+<span class="sd">        :type prediction: Variable</span>
+<span class="sd">        :type target: Variable</span>
+<span class="sd">        :return: MSE loss</span>
+<span class="sd">        :rtype: Variable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">numpy</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>
+        <span class="n">prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="DRMNode"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNode">[docs]</a><span class="k">class</span> <span class="nc">DRMNode</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for populations, readouts and connections</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_in</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_out</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param n_in: number/shape of inputs</span>
+<span class="sd">        :param n_out: number/shape of outputs</span>
+<span class="sd">        :type n_in: scalar or numpy tensor</span>
+<span class="sd">        :type n_out: scalar or numpy tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DRMNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_in</span> <span class="o">=</span> <span class="n">n_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_out</span> <span class="o">=</span> <span class="n">n_out</span>
+
+<div class="viewcode-block" id="DRMNode.forward"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNode.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Forward pass for this node</span>
+
+<span class="sd">        :param x: input data</span>
+<span class="sd">        :return: output data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="DRMNode.reset"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNode.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The function that is called when resetting internal state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="DRMNode.detach_"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNode.detach_">[docs]</a>    <span class="k">def</span> <span class="nf">detach_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">pass</span>
+
+<span class="c1">#####</span>
+<span class="c1">## DRMNet; the neural network which includes populations, connections and readouts</span>
+</div></div>
+<div class="viewcode-block" id="DRMNet"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNet">[docs]</a><span class="k">class</span> <span class="nc">DRMNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">populations</span><span class="p">,</span> <span class="n">ws</span><span class="p">,</span> <span class="n">Wp</span><span class="p">,</span> <span class="n">readout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; DRMNet initializer</span>
+
+<span class="sd">        Each population receives either sensory input or input from other populations.</span>
+<span class="sd">        This reception is mediated by connections which are neural networks themselves.</span>
+<span class="sd">        There are three kinds of connections: sensory-population, population-population, population-response</span>
+<span class="sd">        These all derive from the same object but we can have specific default implementations. Absent connections are</span>
+<span class="sd">        represented as None.</span>
+
+<span class="sd">        :param populations: npop list specifying each population</span>
+<span class="sd">        :param ws: list specifying a connection between the stimulus and each population.</span>
+<span class="sd">        :param Wp: npop x npop object array specifying a connection between all populations</span>
+<span class="sd">        :param readout: list of readout mechanisms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">populations</span><span class="p">)</span>
+
+        <span class="c1">### add components to nn.Sequence object</span>
+
+        <span class="n">_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+            <span class="n">_dict</span><span class="p">[</span><span class="s1">&#39;Population-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">populations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">_dict</span><span class="p">[</span><span class="s1">&#39;Readout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">readout</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+            <span class="n">_dict</span><span class="p">[</span><span class="s1">&#39;S-P-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">wp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">Wp</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Wp</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">_dict</span><span class="p">[</span><span class="s1">&#39;P-P-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DRMNet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">_dict</span><span class="p">)</span>
+
+        <span class="c1">### add populations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populations</span> <span class="o">=</span> <span class="n">populations</span>
+
+        <span class="c1"># add readout mechanism</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readout</span> <span class="o">=</span> <span class="n">readout</span>
+
+        <span class="c1">### add connections</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span> <span class="o">=</span> <span class="n">ws</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wp</span> <span class="o">=</span> <span class="n">Wp</span>
+
+        <span class="c1">### define loss criterion</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">DRMLoss</span><span class="p">()</span>
+
+        <span class="c1">### store population activity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_output</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="DRMNet.detach_"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNet.detach_">[docs]</a>    <span class="k">def</span> <span class="nf">detach_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Detach gradients for truncation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">populations</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">w</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wp</span><span class="o">.</span><span class="n">ravel</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">w</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DRMNet.forward"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNet.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Forward propagation</span>
+
+<span class="sd">        :param x: sensory input at this point in time (zeros for no input); numpy array</span>
+<span class="sd">        :return: predicted output measurements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># initialize population outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_output</span> <span class="o">=</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">_n_out</span><span class="p">]))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">populations</span><span class="p">]</span>
+
+        <span class="c1"># randomly update each population</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+
+            <span class="c1"># pass sensory input to the sensory-population connection associated with this population</span>
+            <span class="c1"># the result is the sensory input for that population (e.g. delayed input)</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ws</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">pop_input</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># push stimulus into connection that links stimulus to i-th population</span>
+                <span class="n">pop_input</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">x</span><span class="p">)]</span>
+
+            <span class="c1"># get population connections entering this population and pass other populations output through the connections</span>
+            <span class="c1"># note that population outputs can be zero or not depending on whether they have been updated already</span>
+            <span class="n">wp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">wp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="c1"># push output of j-th population into connection that links it to i-th population</span>
+                    <span class="n">pop_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wp</span><span class="p">[</span><span class="n">j</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_output</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+
+            <span class="c1"># pop_input now contains the output of all connections that provide the input to the i-th population</span>
+
+            <span class="c1"># compute population output for the i-th population</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop_output</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">populations</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">pop_input</span><span class="p">)</span>
+
+        <span class="c1"># now we have all the outputs, we can pass it to the readout mechanism</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">readout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_output</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DRMNet.reset"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRMNet.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Reset states of model components</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+
+            <span class="c1"># reset stimulus connections</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+            <span class="c1"># reset population connections</span>
+            <span class="n">wp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_pop</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">wp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">wp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">populations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">readout</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="DRM"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRM">[docs]</a><span class="k">class</span> <span class="nc">DRM</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;wrapper object that trains and analyses the model at hand</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">drm_net</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param drm_net: a DRM network</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">drm_net</span>
+
+        <span class="c1"># stores optimal model according to validation loss</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimal_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="c1"># optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+
+<div class="viewcode-block" id="DRM.forward"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_iter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Forward propagation</span>
+
+<span class="sd">        :param data_iter:</span>
+<span class="sd">        :return: generated response and population activity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">activity</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="c1"># evaluation mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_iter</span><span class="p">:</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;stimulus&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+            <span class="c1"># keep track of population activity</span>
+            <span class="n">activity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">pop_output</span><span class="p">]))</span>
+
+            <span class="n">response</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">response</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">activity</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DRM.estimate"><a class="viewcode-back" href="../../DRM.html#DRM.base.DRM.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_iter</span><span class="p">,</span> <span class="n">val_iter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Estimation via truncated backprop</span>
+
+<span class="sd">        :param data_iter: iterator which generates sensations/responses at some specified resolution</span>
+<span class="sd">        :param val_iter: optional iterator which generates sensations/responses at some specified resolution used for validation</span>
+<span class="sd">        :param n_epochs: number of training epochs</span>
+<span class="sd">        :param cutoff: cutoff for truncated backpropagation</span>
+<span class="sd">        :return: train loss and validation loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># initialization for validation</span>
+        <span class="n">min_loss</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c1"># track training and validation loss</span>
+        <span class="n">train_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">)</span>
+        <span class="n">validation_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)):</span>
+
+            <span class="c1"># keep track of loss</span>
+            <span class="n">_loss</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># reset at start of each epoch</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+            <span class="c1"># training mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_iter</span><span class="p">:</span>
+
+                <span class="c1"># compute training loss</span>
+                <span class="n">_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;stimulus&#39;</span><span class="p">]),</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">])</span>
+                <span class="n">_loss</span> <span class="o">+=</span> <span class="n">_l</span>
+
+                <span class="n">train_loss</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span> <span class="o">+=</span> <span class="n">_l</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stimulus&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">cutoff</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="n">cutoff</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">data_iter</span><span class="o">.</span><span class="n">is_final</span><span class="p">():</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                    <span class="n">_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">detach_</span><span class="p">()</span>
+
+                    <span class="n">_loss</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+                    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># run validation</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">val_iter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+
+                <span class="c1"># reset at start of each epoch</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+                <span class="c1"># evaluation mode</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">val_iter</span><span class="p">:</span>
+
+                    <span class="c1"># compute validation loss</span>
+                    <span class="n">_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;stimulus&#39;</span><span class="p">]),</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">])</span>
+
+                    <span class="n">validation_loss</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span> <span class="o">+=</span> <span class="n">_l</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stimulus&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># store best model in case loss was minimized</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">val_iter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">min_loss</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">validation_loss</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_loss</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_optimal_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+                        <span class="n">min_loss</span> <span class="o">=</span> <span class="n">validation_loss</span><span class="p">[</span><span class="n">epoch</span><span class="p">]</span>
+
+        <span class="c1"># set model to optimal model</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">val_iter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_optimal_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">train_loss</span><span class="p">,</span> <span class="n">validation_loss</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Michele D'Asaro, Umut Guclu, Marcel van Gerven.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

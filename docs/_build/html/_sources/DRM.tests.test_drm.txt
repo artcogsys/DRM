@@ -1,0 +1,4 @@
+.. automodule:: DRM.tests.test_drm
+    :members:
+    :undoc-members:
+    :show-inheritance:

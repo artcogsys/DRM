@@ -14,6 +14,12 @@ class DRMReadout(DRMNode):
         self.l1 = nn.Linear(n_in, n_out)
 
     def forward(self, x):
+        """Forward propagation
+
+        :param x: readout input
+        :type x: list of afferent population outputs
+        :return: predicted measurements
+        """
 
         # this readout mechanism concatenates all population outputs for further processing
         x = torch.cat(x, 1)

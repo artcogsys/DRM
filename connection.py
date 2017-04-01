@@ -20,6 +20,11 @@ class DRMConnection(DRMNode):
         self._history = None
 
     def forward(self, x):
+        """Forward propagation
+
+        :param x: input to connection
+        :return: connection output
+        """
 
         if self._history is None:
             self._history = [Variable(torch.zeros(x.size())) for i in range(self._delay)]
@@ -30,9 +35,15 @@ class DRMConnection(DRMNode):
         return y
 
     def reset(self):
+        """Reset state
+        """
+
         self._history = None
 
     def detach_(self):
+        """Detach gradients for truncation
+        """
+
         for x in self._history:
             x.detach_()
 
