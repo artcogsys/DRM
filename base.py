@@ -127,7 +127,8 @@ class DRMNet(nn.Sequential):
             p.detach_()
 
         for w in self.ws:
-            w.detach_()
+            if w:
+                w.detach_()
 
         for w in self.Wp.ravel():
             if w:
@@ -208,11 +209,10 @@ class DRM(object):
 
         self.model = drm_net
 
-        self.val_model = copy.deepcopy(self.model)
+        # stores optimal model according to validation loss
+        self._optimal_model = copy.deepcopy(self.model)
 
-        self.model.train(True)
-
-        # hard coded for now
+        # optimizer
         self.optimizer = optim.Adam(self.model.parameters())
 
     def forward(self, data_iter):
@@ -226,6 +226,9 @@ class DRM(object):
         activity = []
 
         self.model.reset()
+
+        # evaluation mode
+        self.model.eval()
 
         for data in data_iter:
 
@@ -249,7 +252,7 @@ class DRM(object):
         """
 
         # initialization for validation
-        min_loss = optimal_model = None
+        min_loss = None
 
         # track training and validation loss
         train_loss = np.zeros(n_epochs)
@@ -263,6 +266,9 @@ class DRM(object):
 
             # reset at start of each epoch
             self.model.reset()
+
+            # training mode
+            self.model.train()
 
             for data in data_iter:
 
@@ -289,10 +295,11 @@ class DRM(object):
             # run validation
             if not val_iter is None:
 
-                self.val_model.load_state_dict(self.model.state_dict())
+                # reset at start of each epoch
+                self.model.reset()
 
-                # reset agents at start of each epoch
-                self.val_model.reset()
+                # evaluation mode
+                self.model.eval()
 
                 for data in val_iter:
 
@@ -303,16 +310,12 @@ class DRM(object):
 
                 # store best model in case loss was minimized
                 if not val_iter is None:
-
-                    if min_loss is None:
-                        optimal_model = self.val_model
+                    if min_loss is None or validation_loss[epoch] < min_loss:
+                        self._optimal_model.load_state_dict(self.model.state_dict())
                         min_loss = validation_loss[epoch]
-                    else:
-                        if validation_loss[epoch] < min_loss:
-                            optimal_model = copy.deepcopy(self.val_model)
-                            min_loss = validation_loss[epoch]
 
+        # set model to optimal model
         if not val_iter is None:
-            self.model = optimal_model
+            self.model.load_state_dict(self._optimal_model.state_dict())
 
         return train_loss, validation_loss

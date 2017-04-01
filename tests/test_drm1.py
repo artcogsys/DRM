@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 #######
 # Parameters
 
-n_epochs = 200
+n_epochs = 100
 
 #######
 # Dataset
@@ -134,8 +134,12 @@ train_loss, validation_loss = drm2.estimate(data_iter, val_iter, n_epochs)
 #######
 # check decrease in loss
 
-print 'validation loss:'
-print validation_loss
+plt.figure()
+plt.plot(train_loss)
+plt.hold(True)
+plt.plot(validation_loss)
+plt.legend(['training loss', 'validation loss'])
+
 
 #######
 # compute population activity for estimated model
@@ -158,6 +162,7 @@ print c2
 #######
 # plot population activity - first 100 datapoints
 
+plt.figure()
 for i in range(n_pop):
 
     x = np.vstack([activity_gt[:, i], activity_init[:, i], activity_estim[:, i]]).T
