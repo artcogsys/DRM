@@ -134,8 +134,6 @@ Training takes place using truncated backpropagation on the (partially observed)
 
 # TO DO
 
-* Reimplement basic framework in PyTorch (Marcel)
-* Refine framework (Silvan, Umut, Marcel)
 * Add Cuda support
 * Test on (V1/V2) BOLD data (Michele); two populations; conditioned on V1 or V2 voxels only
 * Test on Allen/zebrafish data (Tami)

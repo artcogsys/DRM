@@ -22,7 +22,7 @@ class DRMLoss(nn.Module):
 
         idx = np.where(np.any(np.isnan(target.data.numpy()), axis=1) == False)[0]
         indices = Variable(torch.LongTensor(idx))
-        input = torch.index_select(input, 0, indices) # INPUT SHOULD BE A TENSOR. BUT WE ARE DEALING WITH A VARIABLE
+        input = torch.index_select(input, 0, indices)
         target = torch.index_select(target, 0, indices)
 
         return self.loss(input, target)
