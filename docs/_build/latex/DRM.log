@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2016.4.24)  2 APR 2017 07:39
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2016.4.24)  2 APR 2017 07:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -935,58 +935,62 @@ LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <24.88> not available
 [1
 
 
-] [2
-
 ]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 204.
+ [2]
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 294.
+
+ (/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
+[3] [4]
 Chapter 2.
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 144.
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 352.
 (/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 144.
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 155.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 352.
+ [5
 
-
-(/usr/local/texlive/2015/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [3]
+]
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <10> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 318.
- [4]
-[5] [6
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 526.
+ [6] [7]
+[8
 
 ]
 Chapter 3.
-[7] [8
-
-] [9
-
-
-] (./DRM.ind [10
-
+[9] [10
 
 ] [11
 
 
+] (./DRM.ind [12
+
+
+] [13
+
+
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 478.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 478.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 686.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 686.
  (./DRM.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 478.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 478.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 686.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 686.
 Package rerunfilecheck Info: File `DRM.out' has not changed.
-(rerunfilecheck)             Checksum: AADED5EB95E4641CFC9B8387A0F1FB2D;244.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 478.
+(rerunfilecheck)             Checksum: 123C52B18D34E9C3BCF8EA1007212D27;920.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 686.
  ) 
 Here is how much of TeX's memory you used:
- 9210 strings out of 493089
- 128868 string characters out of 6134842
- 232496 words of memory out of 5000000
- 12397 multiletter control sequences out of 15000+600000
- 53775 words of font info for 60 fonts, out of 8000000 for 9000
+ 9287 strings out of 493089
+ 130017 string characters out of 6134842
+ 233192 words of memory out of 5000000
+ 12443 multiletter control sequences out of 15000+600000
+ 58695 words of font info for 65 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
- 36i,11n,45p,311b,480s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,11n,49p,311b,480s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2015/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></usr/local/texlive/2
 015/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2015/texm
@@ -996,10 +1000,10 @@ ype1/urw/helvetic/uhvbo8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/u
 rw/helvetic/uhvr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/time
 s/utmb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmr8a.p
 fb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on DRM.pdf (15 pages, 105869 bytes).
+Output written on DRM.pdf (17 pages, 116860 bytes).
 PDF statistics:
- 221 PDF objects out of 1000 (max. 8388607)
- 188 compressed objects within 2 object streams
- 52 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 299 PDF objects out of 1000 (max. 8388607)
+ 263 compressed objects within 3 object streams
+ 71 named destinations out of 1000 (max. 500000)
+ 157 words of extra memory for PDF output out of 10000 (max. 10000000)
 

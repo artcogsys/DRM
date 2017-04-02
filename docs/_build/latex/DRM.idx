@@ -1,30 +1,30 @@
-\indexentry{DRM.base (module)|hyperpage}{3}
-\indexentry{DRM (class in DRM.base)|hyperpage}{3}
-\indexentry{estimate() (DRM.base.DRM method)|hyperpage}{3}
-\indexentry{forward() (DRM.base.DRM method)|hyperpage}{3}
-\indexentry{DRMLoss (class in DRM.base)|hyperpage}{3}
-\indexentry{forward() (DRM.base.DRMLoss method)|hyperpage}{3}
-\indexentry{DRMNet (class in DRM.base)|hyperpage}{3}
-\indexentry{detach\_() (DRM.base.DRMNet method)|hyperpage}{3}
-\indexentry{forward() (DRM.base.DRMNet method)|hyperpage}{4}
-\indexentry{reset() (DRM.base.DRMNet method)|hyperpage}{4}
-\indexentry{DRMNode (class in DRM.base)|hyperpage}{4}
-\indexentry{detach\_() (DRM.base.DRMNode method)|hyperpage}{4}
-\indexentry{forward() (DRM.base.DRMNode method)|hyperpage}{4}
-\indexentry{reset() (DRM.base.DRMNode method)|hyperpage}{4}
-\indexentry{DRM.connection (module)|hyperpage}{4}
-\indexentry{DRMConnection (class in DRM.connection)|hyperpage}{4}
-\indexentry{detach\_() (DRM.connection.DRMConnection method)|hyperpage}{4}
-\indexentry{forward() (DRM.connection.DRMConnection method)|hyperpage}{4}
-\indexentry{reset() (DRM.connection.DRMConnection method)|hyperpage}{4}
-\indexentry{DRM.iterators (module)|hyperpage}{4}
-\indexentry{DRMIterator (class in DRM.iterators)|hyperpage}{4}
-\indexentry{\_\_iter\_\_() (DRM.iterators.DRMIterator method)|hyperpage}{4}
-\indexentry{is\_final() (DRM.iterators.DRMIterator method)|hyperpage}{4}
-\indexentry{next() (DRM.iterators.DRMIterator method)|hyperpage}{4}
-\indexentry{DRM.population (module)|hyperpage}{4}
-\indexentry{DRMPopulation (class in DRM.population)|hyperpage}{4}
-\indexentry{forward() (DRM.population.DRMPopulation method)|hyperpage}{5}
-\indexentry{DRM.readout (module)|hyperpage}{5}
-\indexentry{DRMReadout (class in DRM.readout)|hyperpage}{5}
-\indexentry{forward() (DRM.readout.DRMReadout method)|hyperpage}{5}
+\indexentry{DRM.base (module)|hyperpage}{5}
+\indexentry{DRM (class in DRM.base)|hyperpage}{5}
+\indexentry{estimate() (DRM.base.DRM method)|hyperpage}{5}
+\indexentry{forward() (DRM.base.DRM method)|hyperpage}{5}
+\indexentry{DRMLoss (class in DRM.base)|hyperpage}{5}
+\indexentry{forward() (DRM.base.DRMLoss method)|hyperpage}{5}
+\indexentry{DRMNet (class in DRM.base)|hyperpage}{5}
+\indexentry{detach\_() (DRM.base.DRMNet method)|hyperpage}{5}
+\indexentry{forward() (DRM.base.DRMNet method)|hyperpage}{6}
+\indexentry{reset() (DRM.base.DRMNet method)|hyperpage}{6}
+\indexentry{DRMNode (class in DRM.base)|hyperpage}{6}
+\indexentry{detach\_() (DRM.base.DRMNode method)|hyperpage}{6}
+\indexentry{forward() (DRM.base.DRMNode method)|hyperpage}{6}
+\indexentry{reset() (DRM.base.DRMNode method)|hyperpage}{6}
+\indexentry{DRM.connection (module)|hyperpage}{6}
+\indexentry{DRMConnection (class in DRM.connection)|hyperpage}{6}
+\indexentry{detach\_() (DRM.connection.DRMConnection method)|hyperpage}{6}
+\indexentry{forward() (DRM.connection.DRMConnection method)|hyperpage}{6}
+\indexentry{reset() (DRM.connection.DRMConnection method)|hyperpage}{6}
+\indexentry{DRM.iterators (module)|hyperpage}{6}
+\indexentry{DRMIterator (class in DRM.iterators)|hyperpage}{6}
+\indexentry{\_\_iter\_\_() (DRM.iterators.DRMIterator method)|hyperpage}{6}
+\indexentry{is\_final() (DRM.iterators.DRMIterator method)|hyperpage}{6}
+\indexentry{next() (DRM.iterators.DRMIterator method)|hyperpage}{6}
+\indexentry{DRM.population (module)|hyperpage}{6}
+\indexentry{DRMPopulation (class in DRM.population)|hyperpage}{6}
+\indexentry{forward() (DRM.population.DRMPopulation method)|hyperpage}{7}
+\indexentry{DRM.readout (module)|hyperpage}{7}
+\indexentry{DRMReadout (class in DRM.readout)|hyperpage}{7}
+\indexentry{forward() (DRM.readout.DRMReadout method)|hyperpage}{7}
