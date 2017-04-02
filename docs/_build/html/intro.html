@@ -168,28 +168,6 @@ ignoring outputs when computing the loss.</dd>
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
 <p>Training takes place using truncated backpropagation on the (partially observed) data</p>
 </div>
-<div class="section" id="to-do">
-<h2>TO DO<a class="headerlink" href="#to-do" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Add Cuda support</li>
-<li>Test on (V1/V2) BOLD data (Michele); two populations; conditioned on V1 or V2 voxels only</li>
-<li>Test on Allen/zebrafish data (Tami)</li>
-<li>Link model to physical constants; i.e. make link to biophysics explicit</li>
-<li>Create learnable delays</li>
-<li>Improve model plausibility</li>
-<li>Make model work on resting state data (using stochastic nodes and other loss functions)</li>
-<li>Make model suitable for direct training on tasks</li>
-<li>Add visualizations; inspection of internal states; graphical ways of building the model</li>
-<li>Improve and expand documentation using Sphinx: <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">http://www.sphinx-doc.org/en/stable/</a></li>
-<li>Develop readout mechanisms for fMRI/MEG/Calcium/LFP/Spiking data</li>
-<li>Hogwild style update. Link to biophysical, Euler and other updates</li>
-<li>DRM will be the general framework for biocircuit informed general modeling</li>
-<li>GRU motivation; see Miconi paper</li>
-<li>Identifiability issues: how to determine if a model does well when comparing against ground truth data? Parameter identifiability but also population identifiability in case of models that contain exactly the same populations</li>
-<li>Add deepcopy functionality</li>
-<li>Create multiple readout mechanisms? No because we cannot handle e.g. MEG data</li>
-</ul>
-</div>
 </div>
 
 
@@ -221,7 +199,6 @@ ignoring outputs when computing the loss.</dd>
 <li><a class="reference internal" href="#connectivity">Connectivity</a></li>
 <li><a class="reference internal" href="#data">Data</a></li>
 <li><a class="reference internal" href="#training">Training</a></li>
-<li><a class="reference internal" href="#to-do">TO DO</a></li>
 </ul>
 </li>
 </ul>
