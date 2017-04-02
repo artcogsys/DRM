@@ -1,13 +1,11 @@
-\indexentry{DRM (module)|hyperpage}{3}
-\indexentry{DRM.tests (module)|hyperpage}{3}
 \indexentry{DRM.base (module)|hyperpage}{3}
 \indexentry{DRM (class in DRM.base)|hyperpage}{3}
 \indexentry{estimate() (DRM.base.DRM method)|hyperpage}{3}
 \indexentry{forward() (DRM.base.DRM method)|hyperpage}{3}
 \indexentry{DRMLoss (class in DRM.base)|hyperpage}{3}
 \indexentry{forward() (DRM.base.DRMLoss method)|hyperpage}{3}
-\indexentry{DRMNet (class in DRM.base)|hyperpage}{4}
-\indexentry{detach\_() (DRM.base.DRMNet method)|hyperpage}{4}
+\indexentry{DRMNet (class in DRM.base)|hyperpage}{3}
+\indexentry{detach\_() (DRM.base.DRMNet method)|hyperpage}{3}
 \indexentry{forward() (DRM.base.DRMNet method)|hyperpage}{4}
 \indexentry{reset() (DRM.base.DRMNet method)|hyperpage}{4}
 \indexentry{DRMNode (class in DRM.base)|hyperpage}{4}
@@ -23,9 +21,9 @@
 \indexentry{DRMIterator (class in DRM.iterators)|hyperpage}{4}
 \indexentry{\_\_iter\_\_() (DRM.iterators.DRMIterator method)|hyperpage}{4}
 \indexentry{is\_final() (DRM.iterators.DRMIterator method)|hyperpage}{4}
-\indexentry{next() (DRM.iterators.DRMIterator method)|hyperpage}{5}
-\indexentry{DRM.population (module)|hyperpage}{5}
-\indexentry{DRMPopulation (class in DRM.population)|hyperpage}{5}
+\indexentry{next() (DRM.iterators.DRMIterator method)|hyperpage}{4}
+\indexentry{DRM.population (module)|hyperpage}{4}
+\indexentry{DRMPopulation (class in DRM.population)|hyperpage}{4}
 \indexentry{forward() (DRM.population.DRMPopulation method)|hyperpage}{5}
 \indexentry{DRM.readout (module)|hyperpage}{5}
 \indexentry{DRMReadout (class in DRM.readout)|hyperpage}{5}

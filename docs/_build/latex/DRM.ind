@@ -6,23 +6,21 @@
 
   \indexspace
   \bigletter D
-  \item detach\_() (DRM.base.DRMNet method), \hyperpage{4}
+  \item detach\_() (DRM.base.DRMNet method), \hyperpage{3}
   \item detach\_() (DRM.base.DRMNode method), \hyperpage{4}
   \item detach\_() (DRM.connection.DRMConnection method), \hyperpage{4}
   \item DRM (class in DRM.base), \hyperpage{3}
-  \item DRM (module), \hyperpage{3}
   \item DRM.base (module), \hyperpage{3}
   \item DRM.connection (module), \hyperpage{4}
   \item DRM.iterators (module), \hyperpage{4}
-  \item DRM.population (module), \hyperpage{5}
+  \item DRM.population (module), \hyperpage{4}
   \item DRM.readout (module), \hyperpage{5}
-  \item DRM.tests (module), \hyperpage{3}
   \item DRMConnection (class in DRM.connection), \hyperpage{4}
   \item DRMIterator (class in DRM.iterators), \hyperpage{4}
   \item DRMLoss (class in DRM.base), \hyperpage{3}
-  \item DRMNet (class in DRM.base), \hyperpage{4}
+  \item DRMNet (class in DRM.base), \hyperpage{3}
   \item DRMNode (class in DRM.base), \hyperpage{4}
-  \item DRMPopulation (class in DRM.population), \hyperpage{5}
+  \item DRMPopulation (class in DRM.population), \hyperpage{4}
   \item DRMReadout (class in DRM.readout), \hyperpage{5}
 
   \indexspace
@@ -45,7 +43,7 @@
 
   \indexspace
   \bigletter N
-  \item next() (DRM.iterators.DRMIterator method), \hyperpage{5}
+  \item next() (DRM.iterators.DRMIterator method), \hyperpage{4}
 
   \indexspace
   \bigletter R

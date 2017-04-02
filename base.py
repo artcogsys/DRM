@@ -72,6 +72,8 @@ class DRMNode(nn.Module):
         pass
 
     def detach_(self):
+        """Detach gradients for truncation
+        """
 
         pass
 

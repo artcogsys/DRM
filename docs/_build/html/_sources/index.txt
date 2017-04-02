@@ -3,13 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to DRM's documentation!
+DRM documentation
 ===============================
 
-Contents:
-
 .. toctree::
-   modules
+   :glob:
+   :maxdepth: 1
+   
+   intro
+   DRM
 
 Indices and tables
 ==================

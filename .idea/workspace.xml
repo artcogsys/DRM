@@ -2,11 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0f1af262-a018-4e18-b15d-e6e190428bfa" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/doctrees/DRM.base.doctree" afterPath="$PROJECT_DIR$/docs/_build/doctrees/DRM.base.doctree" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/doctrees/DRM.doctree" afterPath="$PROJECT_DIR$/docs/_build/doctrees/DRM.doctree" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/doctrees/DRM.readout.doctree" afterPath="$PROJECT_DIR$/docs/_build/doctrees/DRM.readout.doctree" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/doctrees/DRM.tests.test_drm1.doctree" afterPath="$PROJECT_DIR$/docs/_build/doctrees/DRM.tests.test_drm1.doctree" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/doctrees/environment.pickle" afterPath="$PROJECT_DIR$/docs/_build/doctrees/environment.pickle" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.pdf" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.pdf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/base.py" afterPath="$PROJECT_DIR$/base.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/connection.py" afterPath="$PROJECT_DIR$/connection.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/iterators.py" afterPath="$PROJECT_DIR$/iterators.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/population.py" afterPath="$PROJECT_DIR$/population.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/readout.py" afterPath="$PROJECT_DIR$/readout.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/html/DRM.base.html" afterPath="$PROJECT_DIR$/docs/_build/html/DRM.base.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/html/DRM.html" afterPath="$PROJECT_DIR$/docs/_build/html/DRM.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/html/_modules/DRM/base.html" afterPath="$PROJECT_DIR$/docs/_build/html/_modules/DRM/base.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.aux" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.aux" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.idx" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.idx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.ind" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.ind" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.log" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.log" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/_build/latex/DRM.tex" afterPath="$PROJECT_DIR$/docs/_build/latex/DRM.tex" />
     </list>
     <ignored path="DRM.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,11 +37,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="base.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="base.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/base.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-986">
-              <caret line="257" column="0" lean-forward="true" selection-start-line="257" selection-start-column="0" selection-end-line="257" selection-end-column="0" />
+            <state relative-caret-position="272">
+              <caret line="77" column="8" lean-forward="false" selection-start-line="77" selection-start-column="8" selection-end-line="77" selection-end-column="8" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -53,7 +63,7 @@
         <entry file="file://$PROJECT_DIR$/population.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="270">
-              <caret line="22" column="30" lean-forward="true" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="30" />
+              <caret line="22" column="30" lean-forward="false" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="30" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -103,10 +113,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_drm1.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_drm1.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tests/test_drm1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
+            <state relative-caret-position="-1820">
               <caret line="13" column="12" lean-forward="false" selection-start-line="13" selection-start-column="12" selection-end-line="13" selection-end-column="12" />
               <folding>
                 <element signature="e#119#152#0" expanded="true" />
@@ -156,6 +166,8 @@
       <find>load_st</find>
       <find>nump</find>
       <find>sensory</find>
+      <find>det</find>
+      <find>detach</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -208,20 +220,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="DRM" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DRM" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DRM" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="tests" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -455,9 +453,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="23" y="23" width="1440" height="850" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16701902" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16701902" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="13" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.328877" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -466,7 +464,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.38918206" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38918206" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug Logs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -899,16 +897,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test_drm1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="12" lean-forward="false" selection-start-line="13" selection-start-column="12" selection-end-line="13" selection-end-column="12" />
-          <folding>
-            <element signature="e#119#152#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -955,7 +943,7 @@
     <entry file="file://$PROJECT_DIR$/population.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
-          <caret line="22" column="30" lean-forward="true" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="30" />
+          <caret line="22" column="30" lean-forward="false" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="30" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>
@@ -964,10 +952,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/base.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-986">
-          <caret line="257" column="0" lean-forward="true" selection-start-line="257" selection-start-column="0" selection-end-line="257" selection-end-column="0" />
+        <state relative-caret-position="272">
+          <caret line="77" column="8" lean-forward="false" selection-start-line="77" selection-start-column="8" selection-end-line="77" selection-end-column="8" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/test_drm1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1820">
+          <caret line="13" column="12" lean-forward="false" selection-start-line="13" selection-start-column="12" selection-end-line="13" selection-end-column="12" />
+          <folding>
+            <element signature="e#119#152#0" expanded="true" />
           </folding>
         </state>
       </provider>

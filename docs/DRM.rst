@@ -1,21 +1,6 @@
 DRM package
 ===========
 
-.. automodule:: DRM
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Subpackages
------------
-
-.. toctree::
-
-    DRM.tests
-
-Submodules
-----------
-
 .. automodule:: DRM.base
     :members:
     :undoc-members:

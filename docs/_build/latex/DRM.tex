@@ -19,7 +19,7 @@
 
 
 \title{DRM Documentation}
-\date{April 01, 2017}
+\date{April 02, 2017}
 \release{0.1}
 \author{Michele D'Asaro, Umut Guclu, Marcel van Gerven}
 \newcommand{\sphinxlogo}{}
@@ -131,26 +131,14 @@
 \phantomsection\label{index::doc}
 
 
-Contents:
+
+\chapter{Introduction}
+\label{intro:introduction}\label{intro::doc}\label{intro:drm-documentation}
+This should contain an introduction to DRM.
 
 
-\chapter{DRM}
-\label{modules:welcome-to-drm-s-documentation}\label{modules::doc}\label{modules:drm}
-
-\section{DRM package}
-\label{DRM:drm-package}\label{DRM::doc}\label{DRM:module-DRM}\index{DRM (module)}
-
-\subsection{Subpackages}
-\label{DRM:subpackages}
-
-\subsubsection{DRM.tests package}
-\label{DRM.tests:drm-tests-package}\label{DRM.tests::doc}\label{DRM.tests:module-DRM.tests}\index{DRM.tests (module)}
-
-\paragraph{Submodules}
-\label{DRM.tests:submodules}
-
-\subsection{Submodules}
-\label{DRM:module-DRM.base}\label{DRM:submodules}\index{DRM.base (module)}\index{DRM (class in DRM.base)}
+\chapter{DRM package}
+\label{DRM:drm-package}\label{DRM::doc}\label{DRM:module-DRM.base}\index{DRM.base (module)}\index{DRM (class in DRM.base)}
 
 \begin{fulllineitems}
 \phantomsection\label{DRM:DRM.base.DRM}\pysiglinewithargsret{\strong{class }\code{DRM.base.}\bfcode{DRM}}{\emph{drm\_net}}{}
@@ -292,6 +280,8 @@ Base class for populations, readouts and connections
 
 \begin{fulllineitems}
 \phantomsection\label{DRM:DRM.base.DRMNode.detach_}\pysiglinewithargsret{\bfcode{detach\_}}{}{}
+Detach gradients for truncation
+
 \end{fulllineitems}
 
 \index{forward() (DRM.base.DRMNode method)}
@@ -476,13 +466,11 @@ predicted measurements
 \begin{theindex}
 \def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
 \bigletter{d}
-\item {\texttt{DRM}}, \pageref{DRM:module-DRM}
 \item {\texttt{DRM.base}}, \pageref{DRM:module-DRM.base}
 \item {\texttt{DRM.connection}}, \pageref{DRM:module-DRM.connection}
 \item {\texttt{DRM.iterators}}, \pageref{DRM:module-DRM.iterators}
 \item {\texttt{DRM.population}}, \pageref{DRM:module-DRM.population}
 \item {\texttt{DRM.readout}}, \pageref{DRM:module-DRM.readout}
-\item {\texttt{DRM.tests}}, \pageref{DRM.tests:module-DRM.tests}
 \end{theindex}
 
 \renewcommand{\indexname}{Index}
