@@ -6,34 +6,35 @@ import numpy as np
 import tqdm
 import copy
 
-# class DRMLoss(Chain):
-#     """MSE loss which ignores missing data
-#     """
-#
-#     def __init__(self):
-#
-#         super(DRMLoss, self).__init__()
-#
-#         self.loss = F.mean_squared_error
-#
-#     def __call__(self, prediction, target):
-#         """Computes loss on a prediction and a target
-#
-#         Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.
-#
-#         :param prediction: Prediction of output
-#         :param target: Target output
-#         :type prediction: Variable
-#         :type target: Variable
-#         :return: MSE loss
-#         :rtype: Variable
-#         """
-#
-#         # MAKE THIS PART OF DRM - REQUIRES TESTING; WONT WORK B/C None
-#
-#         idx = np.where(np.any(np.isnan(target.data), axis=1) == False)[0].tolist()
-#
-#         return self.loss(prediction[idx,:], target[idx,:])
+class DRMLoss(Chain):
+    """MSE loss which ignores missing data
+    
+    Make this a feature request in chainer
+
+    """
+
+    def __init__(self):
+
+        super(DRMLoss, self).__init__()
+
+        self.loss = F.mean_squared_error
+
+    def __call__(self, prediction, target):
+        """Computes loss on a prediction and a target
+
+        Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.
+
+        :param prediction: Prediction of output
+        :param target: Target output
+        :type prediction: Variable
+        :type target: Variable
+        :return: MSE loss
+        :rtype: Variable
+        """
+
+        idx = np.where(np.any(np.isnan(target.data), axis=1) == False)[0].tolist()
+
+        return self.loss(prediction[idx,:], target[idx,:])
 
 
 class DRMNode(Chain):
@@ -167,7 +168,7 @@ class DRM(object):
     """wrapper object that trains and analyses the model at hand
     """
 
-    def __init__(self, drm_net, loss=F.mean_squared_error):
+    def __init__(self, drm_net, loss=None):
         """
 
         :param drm_net: a DRM network
@@ -184,7 +185,10 @@ class DRM(object):
         self.optimizer.setup(self.model)
 
         # loss function
-        self.loss = loss
+        if loss is None:
+            self.loss = DRMLoss()
+        else:
+            self.loss = loss
 
     def __call__(self, data_iter):
         """Forward propagation
@@ -240,8 +244,6 @@ class DRM(object):
             with chainer.using_config('train', True):
 
                 for data in data_iter:
-
-                    # deal with missing data
 
                     # compute training loss
                     _loss = self.loss(self.model(data['stimulus']), data['response'])

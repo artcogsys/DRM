@@ -16,9 +16,6 @@ class DRMPopulation(DRMNode):
 
         self.add_link('l1', L.Linear(None, n_out))
 
-        # zero value defines average population activity TO DO
-        #self.l1.bias.data.uniform_(0, 0)
-
     def __call__(self, x):
         """Forward propagation
 

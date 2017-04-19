@@ -33,7 +33,7 @@ resp_len = 500 # number of responses recorded
 
 stim_res = 1 # stimulus resolution
 pop_res  = 1 # population (update) resolution
-resp_res = 1 # response resolution
+resp_res = 2 # response resolution
 
 stim_offset = 0 # stimulus offset relative to start of population sampling
 resp_offset = 0 # response offset relative to start of population sampling
@@ -45,7 +45,8 @@ resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res).
 def create_model():
     """ 
     Helper function to create a DRMNet with a particular structure. Used to create multiple instances with different 
-    initial parameters
+    initial parameters. The default model use populations with a linear layer, connections that have a delay of one, and 
+    readouts that directly observe the population outputs.
     
     :return: DRMNet object
     """
