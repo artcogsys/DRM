@@ -1,69 +1,44 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
-from collections import OrderedDict
+import chainer
+from chainer import ChainList, Chain
+from chainer import Variable
+import chainer.functions as F
 import numpy as np
 import tqdm
 import copy
 
-class DRMLoss(nn.Module):
-    """MSE loss which ignores missing data
-    """
+# class DRMLoss(Chain):
+#     """MSE loss which ignores missing data
+#     """
+#
+#     def __init__(self):
+#
+#         super(DRMLoss, self).__init__()
+#
+#         self.loss = F.mean_squared_error
+#
+#     def __call__(self, prediction, target):
+#         """Computes loss on a prediction and a target
+#
+#         Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.
+#
+#         :param prediction: Prediction of output
+#         :param target: Target output
+#         :type prediction: Variable
+#         :type target: Variable
+#         :return: MSE loss
+#         :rtype: Variable
+#         """
+#
+#         # MAKE THIS PART OF DRM - REQUIRES TESTING; WONT WORK B/C None
+#
+#         idx = np.where(np.any(np.isnan(target.data), axis=1) == False)[0].tolist()
+#
+#         return self.loss(prediction[idx,:], target[idx,:])
 
-    def __init__(self):
 
-        super(DRMLoss, self).__init__()
-
-        self.loss = nn.MSELoss()
-
-    def forward(self, prediction, target):
-        """Computes loss on a prediction and a target
-
-        Computes MSE loss but ignores those terms where the target is equal to nan, indicating missing data.
-
-        :param prediction: Prediction of output
-        :param target: Target output
-        :type prediction: Variable
-        :type target: Variable
-        :return: MSE loss
-        :rtype: Variable
-        """
-
-        idx = np.where(np.any(np.isnan(target.data.numpy()), axis=1) == False)[0]
-        indices = Variable(torch.LongTensor(idx))
-        prediction = torch.index_select(prediction, 0, indices)
-        target = torch.index_select(target, 0, indices)
-
-        return self.loss(prediction, target)
-
-
-class DRMNode(nn.Module):
+class DRMNode(Chain):
     """Base class for populations, readouts and connections
     """
-
-    def __init__(self, n_in=1, n_out=1):
-        """
-
-        :param n_in: number/shape of inputs
-        :param n_out: number/shape of outputs
-        :type n_in: scalar or numpy tensor
-        :type n_out: scalar or numpy tensor
-        """
-
-        super(DRMNode, self).__init__()
-
-        self._n_in = n_in
-        self._n_out = n_out
-
-    def forward(self, x):
-        """ Forward pass for this node
-
-        :param x: input data
-        :return: output data
-        """
-
-        raise NotImplementedError
 
     def reset(self):
         """ The function that is called when resetting internal state
@@ -71,16 +46,11 @@ class DRMNode(nn.Module):
 
         pass
 
-    def detach_(self):
-        """Detach gradients for truncation
-        """
-
-        pass
 
 #####
 ## DRMNet; the neural network which includes populations, connections and readouts
 
-class DRMNet(nn.Sequential):
+class DRMNet(ChainList):
 
     def __init__(self, populations, ws, Wp, readout):
         """ DRMNet initializer
@@ -97,31 +67,28 @@ class DRMNet(nn.Sequential):
         :param readout: list of readout mechanisms
         """
 
+        super(DRMNet, self).__init__()
+
         self.n_pop = len(populations)
 
-        ### add components to nn.Sequence object
-
-        _dict = OrderedDict()
-        for i in range(self.n_pop):
-            _dict['Population-' + str(i)] = populations[i]
-
-        _dict['Readout'] = readout
+        ### add component links
 
         for i in range(self.n_pop):
-            _dict['S-P-' + str(i)] = ws[i]
+            self.add_link(populations[i])
+
+        self.add_link(readout)
+
+        for i in range(self.n_pop):
+            if not ws[i] is None:
+                self.add_link(ws[i])
 
         wp = np.ravel(Wp)
         for i in range(Wp.size):
             if not wp[i] is None:
-                _dict['P-P-' + str(i)] = wp[i]
-
-        super(DRMNet, self).__init__(_dict)
+                self.add_link(wp[i])
 
         ### add populations
         self.populations = populations
-
-        # add readout mechanism
-        self.readout = readout
 
         ### add connections
 
@@ -129,39 +96,24 @@ class DRMNet(nn.Sequential):
 
         self.Wp = Wp
 
-        ### define loss criterion
-
-        self.loss = DRMLoss()
+        # add readout mechanism
+        self.readout = readout
 
         ### store population activity
         self.pop_output = []
 
-    def detach_(self):
-        """Detach gradients for truncation
-        """
 
-        for p in self.populations:
-            p.detach_()
-
-        for w in self.ws:
-            if w:
-                w.detach_()
-
-        for w in self.Wp.ravel():
-            if w:
-                w.detach_()
-
-    def forward(self, x):
+    def __call__(self, x):
         """Forward propagation
 
         :param x: sensory input at this point in time (zeros for no input); numpy array
         :return: predicted output measurements
         """
 
-        batch_size = x.size()[0]
+        batch_size = x.shape[0]
 
         # initialize population outputs
-        self.pop_output = [Variable(torch.zeros([batch_size, p._n_out])) for p in self.populations]
+        self.pop_output = [Variable(np.zeros([batch_size, p.n_out], dtype='float32')) for p in self.populations]
 
         # randomly update each population
         for i in np.random.permutation(self.n_pop):
@@ -215,10 +167,11 @@ class DRM(object):
     """wrapper object that trains and analyses the model at hand
     """
 
-    def __init__(self, drm_net):
+    def __init__(self, drm_net, loss=F.mean_squared_error):
         """
 
         :param drm_net: a DRM network
+        :param loss: loss function
         """
 
         self.model = drm_net
@@ -227,9 +180,13 @@ class DRM(object):
         self._optimal_model = copy.deepcopy(self.model)
 
         # optimizer
-        self.optimizer = optim.Adam(self.model.parameters())
+        self.optimizer = chainer.optimizers.Adam()
+        self.optimizer.setup(self.model)
 
-    def forward(self, data_iter):
+        # loss function
+        self.loss = loss
+
+    def __call__(self, data_iter):
         """Forward propagation
 
         :param data_iter:
@@ -241,17 +198,16 @@ class DRM(object):
 
         self.model.reset()
 
-        # evaluation mode
-        self.model.eval()
+        with chainer.using_config('train', False):
 
-        for data in data_iter:
+            for data in data_iter:
 
-            r = self.model.forward(data['stimulus']).data.numpy()
+                r = self.model(data['stimulus']).data
 
-            # keep track of population activity
-            activity.append(np.array([x.data.numpy()[0,0] for x in self.model.pop_output]))
+                # keep track of population activity
+                activity.append(np.array([x.data[0,0] for x in self.model.pop_output]))
 
-            response.append(r)
+                response.append(r)
 
         return np.vstack(response), np.vstack(activity)
 
@@ -276,60 +232,62 @@ class DRM(object):
         for epoch in tqdm.tqdm(xrange(0, n_epochs)):
 
             # keep track of loss
-            _loss = Variable(torch.zeros(1))
+            loss = Variable(np.zeros((), 'float32'))
 
             # reset at start of each epoch
             self.model.reset()
 
-            # training mode
-            self.model.train()
+            with chainer.using_config('train', True):
 
-            for data in data_iter:
+                for data in data_iter:
 
-                # compute training loss
-                _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
-                _loss += _l
+                    # deal with missing data
 
-                train_loss[epoch] += _l.data[0] / data['stimulus'].size()[0]
+                    # compute training loss
+                    _loss = self.loss(self.model(data['stimulus']), data['response'])
+                    loss += _loss
 
-                # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
-                if (cutoff and idx == cutoff-1) or data_iter.is_final():
+                    train_loss[epoch] += _loss.data / data['stimulus'].shape[0]
 
-                    self.optimizer.zero_grad()
-                    _loss.backward()
-                    self.optimizer.step()
-                    self.model.detach_()
+                    # backpropagate if we reach the cutoff for truncated backprop or if we processed the last batch
+                    if (cutoff and idx == cutoff-1) or data_iter.is_final():
 
-                    _loss = Variable(torch.zeros(1))
+                        self.optimizer.zero_grads()
+                        _loss.backward()
+                        _loss.unchain_backward()
+                        self.optimizer.update()
 
-                    idx = 0
+                        loss = Variable(np.zeros((), 'float32'))
 
-                idx += 1
+                        idx = 0
 
-            # run validation
-            if not val_iter is None:
+                    idx += 1
 
-                # reset at start of each epoch
-                self.model.reset()
+            with chainer.using_config('train', False):
 
-                # evaluation mode
-                self.model.eval()
-
-                for data in val_iter:
-
-                    # compute validation loss
-                    _l = self.model.loss(self.model.forward(data['stimulus']), data['response'])
-
-                    validation_loss[epoch] += _l.data[0] / data['stimulus'].size()[0]
-
-                # store best model in case loss was minimized
+                # run validation
                 if not val_iter is None:
-                    if min_loss is None or validation_loss[epoch] < min_loss:
-                        self._optimal_model.load_state_dict(self.model.state_dict())
-                        min_loss = validation_loss[epoch]
+
+                    # reset at start of each epoch
+                    self.model.reset()
+
+                    for data in val_iter:
+
+                        # deal with missing data
+
+                        # compute validation loss
+                        _loss = self.loss(self.model(data['stimulus']), data['response'])
+
+                        validation_loss[epoch] += _loss.data / data['stimulus'].shape[0]
+
+                    # store best model in case loss was minimized
+                    if not val_iter is None:
+                        if min_loss is None or validation_loss[epoch] < min_loss:
+                            self._optimal_model = copy.deepcopy(self.model)
+                            min_loss = validation_loss[epoch]
 
         # set model to optimal model
         if not val_iter is None:
-            self.model.load_state_dict(self._optimal_model.state_dict())
+            self.model = copy.deepcopy(self._optimal_model)
 
         return train_loss, validation_loss

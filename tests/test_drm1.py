@@ -1,10 +1,15 @@
 #######
 # Test recovery of parameters for one population with fixed readout and no missing data (except first sample)
+# test_drm1.py contains a very basic example to check if learning works optimally. It shows that it can recover the
+# population activity for one population which gets a sensory input of length 3 and where the measurements are a direct copy of
+# the population activity. Population activity itself is delayed relative to the stimulus by one time step (conductance delay).
+# This example shows that we can recover the population activity after training.
 
 from iterators import DRMIterator
 from population import DRMPopulation
 from connection import DRMConnection
-from base import DRM, DRMNet, DRMNode
+from base import DRM, DRMNet
+from readout import DRMReadout
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -37,88 +42,72 @@ resp_offset = 0 # response offset relative to start of population sampling
 stim_time = np.arange(stim_offset, stim_offset + stim_len * stim_res, stim_res).tolist()
 resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res).tolist()
 
-# population parameters
-n_pop_out = 1
-n_pop_in = n_stim + (n_pop-1) * n_pop_out # stimulus input plus scalar output from all other populations
+def create_model():
+    """ 
+    Helper function to create a DRMNet with a particular structure. Used to create multiple instances with different 
+    initial parameters
+    
+    :return: DRMNet object
+    """
+
+    # standard populations
+    populations = [DRMPopulation() for i in range(n_pop)]
+
+    readout = DRMReadout()
+
+    # link stimulus to all populations; each population receives the (delayed) stimulus input
+    ws = [DRMConnection() for i in range(n_pop)]
+
+    # create full population matrix
+    Wp = np.array([None]).reshape([n_pop, n_pop])
+    for i in range(n_pop):
+        for j in range(n_pop):
+            if i != j:
+                Wp[i,j] = DRMConnection()
+
+    # set up ground truth model
+    drm_net = DRMNet(populations, ws, Wp, readout)
+
+    return drm_net
 
 #######
-# define model used for forward simulation
+# define ground truth model used for forward simulation
 
-# standard populations
-populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
-
-# create custom readout mechanism just copies the population response
-class MyReadout(DRMNode):
-
-    def __init__(self, n_in=1, n_out=1):
-        super(MyReadout, self).__init__(n_in, n_out)
-
-    def forward(self, x):
-        return x[0]
-
-readout = MyReadout(n_in=n_pop_out, n_out=n_resp)
-
-# link stimulus to all populations; each population receives the (delayed) stimulus input
-ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
-
-# create full population matrix
-Wp = np.array([None]).reshape([n_pop, n_pop])
-
-# set up ground truth model
-drm_net = DRMNet(populations, ws, Wp, readout)
+drm = DRM(create_model())
 
 #######
-# Generate responses based on sensory input when running the model in forward mode
-
-# drm is responsible for running the network
-drm = DRM(drm_net)
+# Generate responses based on sensory input when running the ground truth model in forward mode
 
 # data used for model estimation
 stimulus1 = np.random.randn(stim_len, n_stim)
 data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, batch_size=1)
-response_gt, _ = drm.forward(data_iter)
+response_gt, _ = drm(data_iter)
 
 # data used for model validation
 stimulus2 = np.random.randn(stim_len, n_stim)
 data_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, batch_size=1)
-response2, activity2 = drm.forward(data_iter)
+response2, activity2 = drm(data_iter)
 
-#######
-# Iterator which generates stimuli and responses
-
+# iterators which generate stimuli and responses
 data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, response=response_gt, resp_time=resp_time, batch_size=32)
 val_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, response=response2, resp_time=resp_time, batch_size=32)
 
 #######
 # define model used for parameter inference - same structure as ground truth model but different initial parameters
 
-# standard populations
-populations = [DRMPopulation(n_in=n_pop_in, n_out=n_pop_out) for i in range(n_pop)]
-
-readout = MyReadout(n_in=n_pop_out, n_out=n_resp)
-
-# link stimulus to all populations; each population receives the (delayed) stimulus input
-ws = [DRMConnection(n_in=n_stim, n_out=n_stim) for i in range(n_pop)]
-
-# create full population matrix
-Wp = np.array([DRMConnection(n_in=n_pop_out, n_out=n_pop_out) for i in range(n_pop * n_pop)]).reshape([n_pop, n_pop])
-
-# remove self connections (these can be handled internally by e.g. an RNN)
-for i in range(n_pop):
-    Wp[i,i] = None
-
-# set up estimation model
-drm_net2 = DRMNet(populations, ws, Wp, readout)
-
-drm2 = DRM(drm_net2)
+drm2 = DRM(create_model())
 
 #######
 # create new data and compute population activity for real model and initial model
 
 test_stim = np.random.randn(stim_len, n_stim)
 test_iter = DRMIterator(resolution=1, stimulus=test_stim, stim_time=stim_time, batch_size=1)
-response_gt, activity_gt = drm.forward(test_iter)
-response_init, activity_init = drm2.forward(test_iter)
+
+# ground truth responses and population activity for this test data
+response_gt, activity_gt = drm(test_iter)
+
+# responses and population activity for this test data for untrained initial model
+response_init, activity_init = drm2(test_iter)
 
 # compute MSE between population activity of real and initial model
 c1 = []
@@ -140,11 +129,10 @@ plt.hold(True)
 plt.plot(validation_loss)
 plt.legend(['training loss', 'validation loss'])
 
-
 #######
-# compute population activity for estimated model
+# compute responses and population activity for estimated model
 
-response_estim, activity_estim = drm2.forward(test_iter)
+response_estim, activity_estim = drm2(test_iter)
 
 # compute MSE between population activity of real and estimated model
 c2 = []
@@ -167,7 +155,7 @@ for i in range(n_pop):
 
     x = np.vstack([activity_gt[:, i], activity_init[:, i], activity_estim[:, i]]).T
 
-    plt.subplot(n_pop,1,i)
+    plt.subplot(n_pop,1,i+1)
     plt.plot(x[:100])
     plt.title('population {0}; initial MSE={1:4.3f}; estim MSE={2:4.3f}'.format(i, c1[i], c2[i]))
     plt.legend(['ground truth', 'initial', 'estimate'])

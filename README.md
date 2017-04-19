@@ -1,6 +1,7 @@
 TO DO
 -----
 
+* How to optimally deal with small dataset (i.e. truncation; batch selection, etc)
 * Add Cuda support
 * Test on (V1/V2) BOLD data (Michele); two populations; conditioned on V1 or V2 voxels only
 * Test on Allen/zebrafish data (Tami)

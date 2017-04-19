@@ -1,6 +1,5 @@
+from chainer import Variable
 import numpy as np
-import torch
-from torch.autograd import Variable
 
 #####
 ## DRM iterator
@@ -112,7 +111,7 @@ class DRMIterator(object):
         stim_data = np.array(map(lambda x: np.zeros(self.stimulus[0].shape) if len(x) == 0 else self.stimulus[x[0]], idx)).astype('float32')
 
         data = {}
-        data['stimulus'] = Variable(torch.from_numpy(stim_data))
+        data['stimulus'] = Variable(stim_data)
 
         if not self.response is None:
 
@@ -122,7 +121,7 @@ class DRMIterator(object):
             # create partially observed data (nans for no output)
             resp_data = np.array(map(lambda x: np.full(self.response[0].shape, np.nan) if len(x) == 0 else self.response[x[0]], idx)).astype('float32')
 
-            data['response'] = Variable(torch.from_numpy(resp_data))
+            data['response'] = Variable(resp_data)
 
         self.idx += 1
 

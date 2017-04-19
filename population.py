@@ -1,8 +1,6 @@
-import torch.nn as nn
-import torch.nn.functional as F
+import chainer.links as L
+import chainer.functions as F
 from base import DRMNode
-import torch
-
 
 #####
 ## DRMPopulation base class
@@ -10,25 +8,27 @@ import torch
 class DRMPopulation(DRMNode):
     # Default population is a linear layer with ReLU output
 
-    def __init__(self, n_in=1, n_out=1, delay=1):
+    def __init__(self, n_out=1):
 
-        super(DRMPopulation, self).__init__(n_in, n_out)
+        super(DRMPopulation, self).__init__()
 
-        self.l1 = nn.Linear(n_in, n_out)
+        self.n_out = n_out
 
-        # zero value defines average population activity
-        self.l1.bias.data.uniform_(0, 0)
+        self.add_link('l1', L.Linear(None, n_out))
 
-    def forward(self, x):
+        # zero value defines average population activity TO DO
+        #self.l1.bias.data.uniform_(0, 0)
+
+    def __call__(self, x):
         """Forward propagation
 
         :param x: population input
-        :type x: list of afferent population outputs
+        :type x: list of afferent connection outputs
         :return: population output
         """
 
         # the list of inputs (e.g. stimulus and other populations) are concatenated for further processing
-        x = torch.cat(x, 1)
+        x = F.concat(x, axis=1)
 
         # relu unstable when we have few units and the input is always negative (zero gradient)
         return F.leaky_relu(self.l1(x))

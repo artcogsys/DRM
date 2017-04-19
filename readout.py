@@ -1,19 +1,31 @@
-import torch.nn as nn
+import chainer.links as L
+import chainer.functions as F
 from base import DRMNode
-import torch
 
 #####
 ## DRMReadout base class
 
 class DRMReadout(DRMNode):
+    # Custom readout mechanism just copies the population response
+    # It assumes that population activity can be read out directly
 
-    def __init__(self, n_in=1, n_out=1):
+    def __call__(self, x):
+        return x[0]
 
-        super(DRMReadout, self).__init__(n_in, n_out)
+#####
+## Linear readout
 
-        self.l1 = nn.Linear(n_in, n_out)
+class DRMReadout2(DRMNode):
 
-    def forward(self, x):
+    def __init__(self, n_out=1):
+
+        super(DRMReadout, self).__init__()
+
+        self.n_out = n_out
+
+        self.l1 = L.Linear(None, n_out)
+
+    def __call__(self, x):
         """Forward propagation
 
         :param x: readout input
@@ -22,6 +34,6 @@ class DRMReadout(DRMNode):
         """
 
         # this readout mechanism concatenates all population outputs for further processing
-        x = torch.cat(x, 1)
+        x = F.concat(x, axis=1)
 
         return self.l1(x)
