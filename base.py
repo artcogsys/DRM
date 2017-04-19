@@ -265,28 +265,26 @@ class DRM(object):
 
                     idx += 1
 
-            with chainer.using_config('train', False):
+            # run validation
+            if not val_iter is None:
 
-                # run validation
-                if not val_iter is None:
+                # reset at start of each epoch
+                self.model.reset()
 
-                    # reset at start of each epoch
-                    self.model.reset()
+                with chainer.using_config('train', False):
 
                     for data in val_iter:
-
-                        # deal with missing data
 
                         # compute validation loss
                         _loss = self.loss(self.model(data['stimulus']), data['response'])
 
                         validation_loss[epoch] += _loss.data / data['stimulus'].shape[0]
 
-                    # store best model in case loss was minimized
-                    if not val_iter is None:
-                        if min_loss is None or validation_loss[epoch] < min_loss:
-                            self._optimal_model = copy.deepcopy(self.model)
-                            min_loss = validation_loss[epoch]
+                # store best model in case loss was minimized
+                if not val_iter is None:
+                    if min_loss is None or validation_loss[epoch] < min_loss:
+                        self._optimal_model = copy.deepcopy(self.model)
+                        min_loss = validation_loss[epoch]
 
         # set model to optimal model
         if not val_iter is None:
