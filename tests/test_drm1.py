@@ -33,7 +33,7 @@ resp_len = 500 # number of responses recorded
 
 stim_res = 1 # stimulus resolution
 pop_res  = 1 # population (update) resolution
-resp_res = 2 # response resolution
+resp_res = 1 # response resolution
 
 stim_offset = 0 # stimulus offset relative to start of population sampling
 resp_offset = 0 # response offset relative to start of population sampling
