@@ -19,7 +19,7 @@ class DRMReadout2(DRMNode):
 
     def __init__(self, n_out=1):
 
-        super(DRMReadout, self).__init__()
+        super(DRMReadout2, self).__init__()
 
         self.n_out = n_out
 

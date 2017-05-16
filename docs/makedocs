@@ -1,3 +1,12 @@
-# sphinx-apidoc -fEM ~/Code/github/DRM -o .
-make html
-make latexpdf
+# mkdir docs
+# cd docs
+# sphinx-quickstart => say yes on autodoc, mathpng and mathjax
+# sphinx-apidoc -FP ~/Code/github/cosmos -o api   # previously sphinx-apidoc -fMeET ~/Code/github/DRM -o api
+# add in conf.py:
+# sys.path.insert(0, os.path.abspath('../..')) # don't forget this one even if it does not contain code
+# sys.path.insert(0, os.path.abspath('../analysis'))
+# sys.path.insert(0, os.path.abspath('../reinforcement_learning'))
+# sys.path.insert(0, os.path.abspath('../supervised_learning'))
+# modify index.rst to add modules (check indentation); add :glob: and then add api/*
+# make html
+# make latexpdf

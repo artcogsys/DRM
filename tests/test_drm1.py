@@ -8,7 +8,7 @@
 from iterators import DRMIterator
 from population import DRMPopulation
 from connection import DRMConnection
-from base import DRM, DRMNet
+from base import DRM, DRMModel
 from readout import DRMReadout
 import numpy as np
 import matplotlib.pyplot as plt
@@ -39,16 +39,16 @@ stim_offset = 0 # stimulus offset relative to start of population sampling
 resp_offset = 0 # response offset relative to start of population sampling
 
 # actual times at which stimuli/responses are sampled
-stim_time = np.arange(stim_offset, stim_offset + stim_len * stim_res, stim_res).tolist()
-resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res).tolist()
+stim_time = np.arange(stim_offset, stim_offset + stim_len * stim_res, stim_res)
+resp_time = np.arange(resp_offset, resp_offset + resp_len * resp_res, resp_res)
 
 def create_model():
     """ 
-    Helper function to create a DRMNet with a particular structure. Used to create multiple instances with different 
+    Helper function to create a DRMModel with a particular structure. Used to create multiple instances with different 
     initial parameters. The default model use populations with a linear layer, connections that have a delay of one, and 
     readouts that directly observe the population outputs.
     
-    :return: DRMNet object
+    :return: DRMModel object
     """
 
     # standard populations
@@ -67,9 +67,9 @@ def create_model():
                 Wp[i,j] = DRMConnection()
 
     # set up ground truth model
-    drm_net = DRMNet(populations, ws, Wp, readout)
+    drm_model = DRMModel(populations, ws, Wp, readout)
 
-    return drm_net
+    return drm_model
 
 #######
 # define ground truth model used for forward simulation
@@ -81,17 +81,17 @@ drm = DRM(create_model())
 
 # data used for model estimation
 stimulus1 = np.random.randn(stim_len, n_stim)
-data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, batch_size=1)
+data_iter = DRMIterator(stimulus=stimulus1, stim_time=stim_time, batch_size=1)
 response_gt, _ = drm(data_iter)
 
 # data used for model validation
 stimulus2 = np.random.randn(stim_len, n_stim)
-data_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, batch_size=1)
+data_iter = DRMIterator(stimulus=stimulus2, stim_time=stim_time, batch_size=1)
 response2, activity2 = drm(data_iter)
 
 # iterators which generate stimuli and responses
-data_iter = DRMIterator(resolution=1, stimulus=stimulus1, stim_time=stim_time, response=response_gt, resp_time=resp_time, batch_size=32)
-val_iter = DRMIterator(resolution=1, stimulus=stimulus2, stim_time=stim_time, response=response2, resp_time=resp_time, batch_size=32)
+data_iter = DRMIterator(stimulus=stimulus1, stim_time=stim_time, response=response_gt, resp_time=resp_time, batch_size=32)
+val_iter = DRMIterator(stimulus=stimulus2, stim_time=stim_time, response=response2, resp_time=resp_time, batch_size=32)
 
 #######
 # define model used for parameter inference - same structure as ground truth model but different initial parameters
@@ -102,7 +102,7 @@ drm2 = DRM(create_model())
 # create new data and compute population activity for real model and initial model
 
 test_stim = np.random.randn(stim_len, n_stim)
-test_iter = DRMIterator(resolution=1, stimulus=test_stim, stim_time=stim_time, batch_size=1)
+test_iter = DRMIterator(stimulus=test_stim, stim_time=stim_time, batch_size=1)
 
 # ground truth responses and population activity for this test data
 response_gt, activity_gt = drm(test_iter)

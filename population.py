@@ -6,7 +6,8 @@ from base import DRMNode
 ## DRMPopulation base class
 
 class DRMPopulation(DRMNode):
-    # Default population is a linear layer with ReLU output
+    """Default population is a linear layer with ReLU output
+    """
 
     def __init__(self, n_out=1):
 

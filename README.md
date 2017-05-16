@@ -1,8 +1,13 @@
 TO DO
 -----
 
+* The model should be run until the last stimulus or response is processed
+* The sampling times should be indicated as integer multiples of the sampling resolution.
+  This makes things easier and prevents roundoff problems.
+  
+* Generalize stimuli to their onsets and offsets
+
 * How to optimally deal with small dataset (i.e. truncation; batch selection, etc)
-* Add Cuda support
 * Test on (V1/V2) BOLD data (Michele); two populations; conditioned on V1 or V2 voxels only
 * Test on Allen/zebrafish data (Tami)
 * Link model to physical constants; i.e. make link to biophysics explicit
